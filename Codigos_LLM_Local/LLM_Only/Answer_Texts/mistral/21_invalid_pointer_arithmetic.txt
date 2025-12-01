@@ -1,0 +1,24 @@
+ 1) Issue Found:
+The code has a buffer overflow vulnerability. The memory allocated for the base pointer is only sufficient for three integers, but when attempting to assign a value to p[0], it accesses an out-of-bound memory location since p points beyond the end of the allocated array. This violation of the bounds of a dynamically allocated memory block can lead to unpredictable behavior and security issues.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *base = (int *)malloc(3 * sizeof(int));
+    if (!base) {
+        return 1;
+    }
+    int *p = base; // Access the first element of the array instead of going beyond its bounds
+    p[0] = 10;
+    assert(p[0] == 10);
+    free(base);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The fix corrects the buffer overflow vulnerability by ensuring that p always points to a valid memory location within the allocated array. By setting p equal to base, it accesses the first element of the array instead of going beyond its bounds, thereby avoiding any unpredictable behavior or security issues.
+

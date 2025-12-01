@@ -1,0 +1,33 @@
+### 1\) Issue Found
+
+  * **Vulnerability/Failure:** Logical error leading to an Assertion Failure.
+  * **Violated Property:** `assert(m == 5)` fails.
+  * **Description:** The function `max_of_two` incorrectly implements "minimum" logic instead of "maximum." When `a < b` is true, it returns `a` (the smaller value), causing `max_of_two(3, 5)` to return `3` instead of the expected `5`.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int max_of_two(int a, int b) {
+    // Corrected condition to return the larger value
+    if (a > b) {
+        return a;
+    }
+    return b;
+}
+
+int main(void) {
+    int m = max_of_two(3, 5);
+    assert(m == 5);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+The root cause was the conditional check `if (a < b)` returning `a`, which selects the minimum value. By changing the condition to `if (a > b)` (or keeping the condition and swapping the return values), the function correctly identifies and returns the larger integer. This ensures `m` equals `5` in `main`, satisfying the formal assertion.
+
+-----
+
+**Would you like me to generate a CBMC or Frama-C proof script to formally verify this fix?**

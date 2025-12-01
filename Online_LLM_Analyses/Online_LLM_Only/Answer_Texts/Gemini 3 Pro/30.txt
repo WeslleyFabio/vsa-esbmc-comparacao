@@ -1,0 +1,43 @@
+### 1\) Issue Found
+
+**Double Free Vulnerability**
+The code attempts to deallocate the same memory region twice. Because pointer `b` is assigned the value of pointer `a` (`struct Node *b = a;`), they both point to the same memory address. Calling `free(a)` releases the memory, making the subsequent call to `free(b)` a violation of memory safety properties, leading to undefined behavior or a program crash.
+
+-----
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+struct Node {
+    int value;
+};
+
+int main(void) {
+    struct Node *a = (struct Node *)malloc(sizeof(struct Node));
+    struct Node *b = a;
+    
+    // Check for allocation failure
+    if (!a) {
+        return 1;
+    }
+    
+    a->value = 42;
+    assert(b->value == 42);
+    
+    // Only free the memory once using either pointer
+    free(a);
+    
+    return 0;
+}
+```
+
+-----
+
+### 3\) Why This Fix Works
+
+The fix removes the redundant `free(b)` call. Since `a` and `b` are **aliases** (they store the exact same memory address), freeing `a` successfully returns the memory to the system. Attempting to free that address again via `b` causes a "double free" error because the heap manager no longer recognizes that address as valid, allocated memory. Removing the second call ensures the memory is deallocated exactly once, satisfying the memory safety requirement.
+
+Would you like me to explain how to detect this using tools like Valgrind or CBMC?

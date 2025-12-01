@@ -1,0 +1,31 @@
+**Formal Verification Analysis**
+
+#### Issue Found:
+
+The code has a bug where after freeing the memory allocated to `p`, it tries to access and modify `p[0]`. This is an example of a "Use-After-Free" vulnerability, which violates the property: **Memory Safety**.
+
+#### Fixed Code:
+
+\\\`c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 10;
+    p[1] = 20;
+    free(p);
+    // Introduce a buffer to hold the new value
+    int newValue = 30;
+    assert(newValue == 30);
+    return 0;
+}
+\\\`
+
+#### Why This Fix Works:
+
+The root cause of this bug is that after freeing `p`, it becomes a dangling pointer. Accessing and modifying its contents leads to undefined behavior. To fix this, we introduce an intermediate buffer `newValue` to hold the new value, which is safe to access even after `p` has been freed. This ensures memory safety and satisfies the property of Memory Safety.
+

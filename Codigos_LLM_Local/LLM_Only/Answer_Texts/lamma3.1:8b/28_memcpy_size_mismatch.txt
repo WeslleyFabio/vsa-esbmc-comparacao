@@ -1,0 +1,38 @@
+**Formal Verification Analysis**
+
+### Issue Found:
+
+- **Buffer Overflow Vulnerability**: The `memcpy` function in the `fill_buffer` function does not check for buffer overflow, allowing an attacker to write beyond the bounds of the `data` array.
+- **Violated Property**: The property that was violated is "memory safety", specifically the absence of buffer overflows.
+
+### Fixed Code:
+
+\\\`c
+#include <assert.h>
+#include <string.h>
+
+struct Buffer {
+    char data[8];
+    int flag;
+};
+
+void fill_buffer(struct Buffer *b, const char *src) {
+    assert(strlen(src) <= sizeof(b->data));
+    memcpy(b->data, src, strlen(src));
+}
+
+int main(void) {
+    struct Buffer b;
+    b.flag = 1;
+    fill_buffer(&b, "ABCDEFGH");
+    assert(b.flag == 1);
+    return 0;
+}
+\\\`
+
+### Why This Fix Works:
+
+The root cause of the buffer overflow vulnerability was that the `memcpy` function did not check if the source string is longer than the destination buffer. To fix this, we added an assertion to ensure that the length of the source string is less than or equal to the size of the `data` array. This prevents the buffer from being overflowed.
+
+Additionally, we replaced the hardcoded value `sizeof(*b)` in the `memcpy` function with `strlen(src)`, which is a more robust way to copy strings and avoids potential overflows.
+

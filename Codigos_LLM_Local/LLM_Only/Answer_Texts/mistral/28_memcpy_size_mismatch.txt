@@ -1,0 +1,31 @@
+ 1) Issue Found:
+The issue here is a type mismatch during the copy operation in the `fill_buffer()` function. The `memcpy()` function is expected to copy an equal number of bytes from the source (`src`) to the destination (`b->data`), but due to different data types, it leads to undefined behavior. Specifically, `sizeof(*b)` should return 16 bytes when using a 64-bit system, while `b->data` is only 8 bytes.
+
+2) Fixed Code:
+To fix this issue, we need to correctly determine the size of the data array and use it in the `memcpy()` function. Here's the corrected version:
+
+```c
+#include <assert.h>
+#include <string.h>
+
+struct Buffer {
+    char data[8];
+    int flag;
+};
+
+void fill_buffer(struct Buffer *b, const char *src) {
+    memcpy(b->data, src, sizeof(b->data));
+}
+
+int main(void) {
+    struct Buffer b;
+    b.flag = 1;
+    fill_buffer(&b, "ABCDEFGH");
+    assert(b.flag == 1);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The fix works because it sets the size of the `memcpy()` function call to the correct length of the destination array (`sizeof(b->data)`). This ensures that the source string is copied correctly without exceeding the buffer's bounds, thus eliminating the type mismatch and undefined behavior.
+

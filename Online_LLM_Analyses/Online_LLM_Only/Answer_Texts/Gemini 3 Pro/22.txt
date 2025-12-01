@@ -1,0 +1,45 @@
+### 1\) Issue Found:
+
+  * **Vulnerability:** Use-After-Return (Dangling Pointer).
+  * **Violated Property:** **Temporal Memory Safety**. The function `store_address` returns the address of a local variable (`x`) which has **automatic storage duration**. When the function returns, the stack frame is popped, and the memory for `x` is deallocated. Dereferencing this pointer (`*q`) in `main` invokes **Undefined Behavior**.
+
+### 2\) Fixed Code:
+
+```c
+#include <assert.h>
+#include <stdlib.h> /* Required for malloc/free */
+
+int *store_address(void) {
+    /* Allocate memory on the heap so it survives the function return */
+    int *p = (int *)malloc(sizeof(int));
+    if (p != NULL) {
+        *p = 5;
+    }
+    return p;
+}
+
+int main(void) {
+    int *q = store_address();
+
+    /* Always check if allocation succeeded */
+    if (q != NULL) {
+        int v = *q;
+        assert(v == 5);
+        
+        /* Free the heap memory to prevent leaks */
+        free(q);
+    }
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works:
+
+The root cause was the mismatch between the pointer's scope and the variable's lifetime.
+
+  * **Original Code:** Used **Stack Allocation**. Local variables only exist while the function is executing. Once `store_address` returned, the address `&x` became invalid.
+  * **Fixed Code:** Uses **Heap Allocation** (`malloc`). Heap memory has **dynamic storage duration**, meaning it persists until explicitly deallocated with `free`. This ensures `q` points to valid memory when dereferenced in `main`.
+
+-----
+
+**Next Step:** Would you like me to generate a CBMC or Frama-C proof harness to formally verify this fix?

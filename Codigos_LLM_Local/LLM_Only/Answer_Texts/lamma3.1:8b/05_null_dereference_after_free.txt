@@ -1,0 +1,46 @@
+Here's the analysis:
+
+**1) Issue Found:**
+
+* The vulnerability is a potential null pointer dereference.
+* The violated property is that the `sum_array` function should not access memory outside the allocated region when passed an invalid array size.
+
+The issue arises from the fact that the `main` function passes `data` to `sum_array`, which has been freed after use. This causes the `sum_array` function to access deallocated memory, leading to undefined behavior.
+
+**2) Fixed Code:**
+
+\\\`c
+#include <assert.h>
+#include <stdlib.h>
+
+int sum_array(int *a, int n) {
+    if (n <= 0 || !a) {
+        return -1; // or any other error code
+    }
+    int s = 0;
+    for (int i = 0; i < n && a[i] != 0; ++i) {
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int *data = (int *)malloc(3 * sizeof(int));
+    if (!data) {
+        return 1;
+    }
+    data[0] = 1;
+    data[1] = 2;
+    data[2] = 3;
+    free(data);
+    data = NULL; // Set the pointer to NULL after freeing
+    int result = sum_array(data, 3); // Should now return -1 (or error code)
+    assert(result == -1); // or assert with expected value
+    return 0;
+}
+\\\`
+
+**3) Why This Fix Works:**
+
+The fix works by setting the `data` pointer to `NULL` after freeing it. This ensures that when `sum_array` is called, it will not attempt to access deallocated memory. Additionally, I've added a check in `sum_array` to ensure that the array size `n` is valid and non-negative. If an invalid size is passed, the function returns an error code (`-1` here). This prevents the function from accessing memory outside the allocated region when passed an incorrect array size.
+

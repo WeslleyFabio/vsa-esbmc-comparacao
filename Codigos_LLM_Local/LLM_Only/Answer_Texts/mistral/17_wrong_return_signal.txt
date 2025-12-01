@@ -1,0 +1,21 @@
+ 1) Issue Found:
+The function `is_even()` incorrectly returns '1' for odd numbers instead of even numbers, causing the assertion in `main()` to fail. The violation here is not related to a specific property but rather an error in the implementation logic.
+
+2) Fixed Code:
+\\\`c
+#include <assert.h>
+
+int is_even(int x) {
+    return (x % 2 == 0) ? 0 : 1;
+}
+
+int main(void) {
+    int r = is_even(4);
+    assert(r == 0);
+    return 0;
+}
+\\\`
+
+3) Why This Fix Works:
+The fix replaces the if-else structure with a ternary operator to simplify the function, ensuring it returns '0' for even numbers and '1' for odd numbers. By doing so, the function now correctly implements the original logic, causing the assertion in `main()` to pass.
+

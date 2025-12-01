@@ -1,0 +1,29 @@
+**Formal Verification Report Analysis**
+
+The formal verification report highlights the following issue:
+
+1. **Issue Found:**
+- The property "always a <= b => max(a,b) = b" is violated.
+This means that there exists an input where the maximum of two values is not correctly computed, violating the expected behavior.
+
+2. **Fixed Code:**
+\\\`c
+#include <assert.h>
+
+int max_of_two(int a, int b) {
+    if (a > b) { // Corrected condition to ensure return value is correct
+        return a;
+    }
+    return b;
+}
+
+int main(void) {
+    int m = max_of_two(3, 5);
+    assert(m == 5);
+    return 0;
+}
+\\\`
+
+3. **Why This Fix Works:**
+The root cause of the issue was that the condition in the `if` statement was checking if `a` is less than `b`, which led to incorrect maximum value selection when `a` is indeed greater than `b`. By changing the condition to `a > b`, we ensure that `a` is correctly chosen as the maximum value when it's greater than `b`, thus satisfying the expected property.
+

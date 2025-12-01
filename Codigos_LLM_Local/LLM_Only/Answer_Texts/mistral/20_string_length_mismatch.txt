@@ -1,0 +1,30 @@
+ 1) Issue Found:
+The vulnerability in the code is related to a logical error. The function `check_password` is designed to verify if the input matches the secret password "secret", but it returns 0 (indicating that the password is incorrect) when the input is equal to the secret password, and only returns 1 for invalid inputs that are longer than the secret password. This results in the function always returning 0 even for correct passwords.
+
+2) Fixed Code:
+\\\`c
+#include <assert.h>
+#include <string.h>
+
+int check_password(const char *input) {
+    const char *secret = "secret";
+    if (strlen(input) > strlen(secret)) {
+        return 1; // Input is too long, password validation failed
+    }
+    if (strncmp(input, secret, strlen(input)) != 0) {
+        return 1; // Input doesn't match the secret password, password validation failed
+    }
+    return 0; // Input matches the secret password, password validation passed
+}
+
+int main(void) {
+    int r = check_password("secret");
+    assert(r == 0);
+    return 0;
+}
+\\\`
+In this corrected version, the function `check_password` returns 1 for inputs that are too long and for inputs that do not match the secret password. This aligns with the intended behavior of the function: returning 0 only for correct passwords.
+
+3) Why This Fix Works:
+The root cause of the issue is a misplaced return statement in the original code, which caused the function to always return 0 even for correct passwords. By moving the return statement that sets `r` to 1 when the input doesn't match the secret password outside of the `if (strlen(input) > strlen(secret))` block, the corrected version ensures that the function returns the appropriate values based on the input.
+

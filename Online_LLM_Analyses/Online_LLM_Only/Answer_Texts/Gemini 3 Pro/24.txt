@@ -1,0 +1,37 @@
+Here is the analysis of the formal verification failure.
+
+### 1\) Issue Found
+
+  * **Vulnerability:** buffer overflow (out-of-bounds write).
+  * **Violated Property:** Memory safety/Valid dereference.
+  * **Detail:** The function `write_third` writes to `p->values[2]`. Since `values` is declared as `int values[2]`, valid indices are only `0` and `1`. Accessing index `2` writes past the end of the allocated memory, causing undefined behavior.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+struct Pair {
+    int values[3]; // Increased size to accommodate 3 elements
+};
+
+void write_third(struct Pair *p) {
+    p->values[2] = 10;
+}
+
+int main(void) {
+    struct Pair p;
+    p.values[0] = 1;
+    p.values[1] = 2;
+    write_third(&p);
+    assert(p.values[1] == 2);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+  * **Root Cause:** The original code attempted to access the 3rd element (index 2) of an array that was only allocated space for 2 elements.
+  * **Explanation:** By increasing the array size to `values[3]`, the memory layout now validly includes index `2`. This prevents the out-of-bounds write and eliminates the undefined behavior while preserving the intent of the `write_third` function.
+
+**Would you like me to analyze how a model checker like CBMC would generate a counterexample trace for this specific overflow?**

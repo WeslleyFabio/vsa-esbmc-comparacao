@@ -1,0 +1,23 @@
+ 1) Issue Found:
+The code has a formal verification failure due to the violation of the expected behavior specified in the assert statement. The function `absolute_value` returns the absolute value of an integer, which means it should return the negative of the input if the input is less than zero. However, the current implementation returns zero for any input less than zero.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+
+int absolute_value(int x) {
+    if (x < 0) {
+        return -x; // Changed the sign of the result
+    }
+    return x;
+}
+
+int main(void) {
+    int v = absolute_value(-5);
+    assert(v == 5); // Change the expected output to match the fixed implementation
+    return 0;
+}
+```
+3) Why This Fix Works:
+The root cause of the issue was that the function `absolute_value` did not correctly handle negative numbers. By changing the sign of the result when the input is less than zero, we can ensure that the function returns the absolute value for any given integer. The change in the expected output in the assert statement was necessary to match the corrected implementation.
+

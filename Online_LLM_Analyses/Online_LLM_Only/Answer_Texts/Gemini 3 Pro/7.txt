@@ -1,0 +1,53 @@
+Here is the analysis and correction of the provided C code.
+
+## 1\) Issue Found
+
+**Vulnerability: Use-After-Free (UAF)**
+
+The verification report indicates a **memory safety violation**. Specifically, the code attempts to write to memory address `p` via `p[0] = 30` *after* the memory has already been deallocated using `free(p)`.
+
+  * **Violated Property:** `valid-dereference`. A pointer must point to a currently allocated memory block to be safely dereferenced.
+  * **Consequence:** Undefined Behavior (UB), which causes formal verification tools (like CBMC or Frama-C) to flag a critical error.
+
+[Image of use-after-free memory diagram]
+
+-----
+
+## 2\) Fixed Code
+
+The logic has been corrected by moving the memory deallocation to occur only after all operations involving the pointer are complete.
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 10;
+    p[1] = 20;
+    
+    // Modification: Perform operations while memory is still allocated
+    p[0] = 30;
+    assert(p[0] == 30);
+    
+    // Fix: Free the memory ONLY after the last access
+    free(p);
+    
+    return 0;
+}
+```
+
+-----
+
+## 3\) Why This Fix Works
+
+The root cause of the original failure was a temporal error in resource management.
+
+  * **Lifetime Extension:** In the fixed code, the lifetime of the object pointed to by `p` is extended to cover the assignment `p[0] = 30` and the subsequent `assert`.
+  * **Dangling Pointer Prevention:** By strictly placing `free(p)` as the final operation regarding that resource, we ensure that `p` is never a "dangling pointer" during any dereference operation.
+  * **Verification Success:** Formal tools track the state of the heap. In the corrected version, the tool confirms that the precondition `valid-allocated(p)` holds true for every read and write instruction.
+
+**Would you like me to show you how to write a formal contract (ACSL) to explicitly forbid this behavior in the future?**

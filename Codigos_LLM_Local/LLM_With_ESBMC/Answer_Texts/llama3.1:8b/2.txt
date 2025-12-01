@@ -1,0 +1,38 @@
+Here's the analysis of the code and ESBMC report:
+
+1) Issue Found:
+- **Vulnerability:** Buffer overflow due to incorrect size calculation when allocating memory for `buf`.
+- **Violated property:** Array bounds violation.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+
+char *duplicate_prefix(const char *src, size_t n) {
+    size_t src_len = strlen(src);
+    if (n > src_len) {
+        n = src_len;
+    }
+    char *buf = (char *)malloc(n + 1); // allocate space for the null terminator
+    if (!buf) {
+        return NULL;
+    }
+    memcpy(buf, src, n + 1);
+    return buf;
+}
+
+int main(void) {
+    const char *s = "hello world";
+    char *p = duplicate_prefix(s, 5);
+    assert(p != NULL);
+    free(p);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+- The original code allocated memory for `buf` with size `n`, which is the number of characters to copy from `src`. However, this does not take into account the null terminator that will be added at the end of the copied string.
+- By changing the allocation size to `n + 1`, we ensure that there is enough space for the null terminator, preventing a buffer overflow when `memcpy` copies the string.
+- The fix also includes a check to prevent allocating more memory than necessary by taking into account the actual length of the input string `src`.

@@ -1,0 +1,32 @@
+Here is the analysis of the provided C code and the verification failure.
+
+### 1\) Issue Found
+
+**Heap Out-of-Bounds Write (Buffer Overflow).**
+The code allocates memory for exactly 3 integers but attempts to write to the 4th integer location. The pointer `p` is calculated as `base + 3`, which points to the memory address immediately following the allocated block (index 3). While calculating this address is legal, dereferencing it with `p[0] = 10` causes a memory safety violation.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    // Allocation increased to 4 to accommodate the access at offset 3
+    int *base = (int *)malloc(4 * sizeof(int));
+    if (!base) {
+        return 1;
+    }
+    int *p = base + 3;
+    p[0] = 10;
+    assert(p[0] == 10);
+    free(base);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+The original code allocated space for indices 0, 1, and 2. The pointer arithmetic `base + 3` targets index 3. By increasing the allocation size from `3 * sizeof(int)` to `4 * sizeof(int)`, the memory address corresponding to `base[3]` becomes a valid, allocated portion of the heap, preventing the buffer overflow.
+
+Would you like me to explain how to detect this error using tools like Valgrind or AddressSanitizer?

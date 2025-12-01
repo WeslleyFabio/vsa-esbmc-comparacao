@@ -1,0 +1,57 @@
+Here is the analysis and correction of the provided C code.
+
+### 1\) Issue Found:
+
+  * **Vulnerability:** **Double Free**.
+  * **Analysis:** The code attempts to `free(p)` on line 16 after a successful call to `realloc`. When `realloc` succeeds, it automatically frees the memory associated with the old pointer (`p`) if the memory block was moved. If the block was not moved, `p` and `q` point to the same memory, meaning `free(p)` prematurely frees the memory that `q` is supposed to use (leading to a subsequent Use-After-Free and another Double Free at the end).
+  * **Violated Property:** `mem-safety` (valid-free).
+
+-----
+
+### 2\) Fixed Code:
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 1;
+    p[1] = 2;
+
+    // realloc automatically frees 'p' if the allocation is successful and memory moves
+    int *q = (int *)realloc(p, 4 * sizeof(int));
+    
+    // Check for realloc failure
+    if (q == NULL) {
+        // Only free 'p' if realloc FAILED and returned NULL
+        free(p);
+        return 1;
+    }
+
+    // Do NOT free(p) here. 'p' is now invalid.
+    
+    q[2] = 3;
+    q[3] = 4;
+    assert(q[3] == 4);
+    
+    free(q); // Frees the current valid pointer
+    return 0;
+}
+```
+
+-----
+
+### 3\) Why This Fix Works:
+
+The `realloc(p, size)` function follows specific ownership semantics:
+
+1.  **On Success:** It returns a pointer to the new memory block (which may be at a new address). The original block pointed to by `p` is deallocated automatically by the system. Therefore, manually calling `free(p)` constitutes a **Double Free**.
+2.  **On Failure:** It returns `NULL` and leaves the original block `p` untouched.
+
+The fix removes the explicit `free(p)` in the success path, ensuring the memory is freed exactly once (via `free(q)` at the end).
+
+Would you like me to generate a CBMC verification proof for this fix?

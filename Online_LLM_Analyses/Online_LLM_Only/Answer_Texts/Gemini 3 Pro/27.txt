@@ -1,0 +1,42 @@
+### 1\) Issue Found
+
+**Logic Error & Assertion Failure:**
+The function `is_index_valid` contains a logical error in its boundary check. The condition `(index < 0)` incorrectly requires the index to be negative to be considered valid. In C, valid array indices must be non-negative.
+
+  * **Verification Failure:** `assert(r2 == 1)` fails because `is_index_valid(9, 10)` evaluates `9 < 0` as false, causing the function to return `0` (invalid) instead of the expected `1` (valid).
+  * **Note:** The original assertion `assert(r1 == 0)` for input `0` was also likely incorrect for standard 0-based indexing, as index `0` should be valid. The fixed code corrects this expectation as well.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int is_index_valid(int index, int size) {
+    // Corrected condition: index must be non-negative AND less than size
+    if ((index >= 0) && (index < size)) {
+        return 1;
+    }
+    return 0;
+}
+
+int main(void) {
+    int r1 = is_index_valid(0, 10);
+    int r2 = is_index_valid(9, 10);
+    
+    // Adjusted assertion: 0 is a valid index, so r1 should be 1
+    assert(r1 == 1); 
+    assert(r2 == 1);
+    
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+The root cause was the use of `index < 0`, which excluded all positive integers (valid indices).
+
+  * The condition was changed to `index >= 0` to correctly include the lower bound of C arrays.
+  * Combined with `index < size`, this correctly defines the valid range `[0, size)`.
+  * The assertion for `r1` was updated to reflect that `0` is a valid index in C, ensuring the test suite is consistent with the logic.
+
+Do you need me to verify this fix against specific static analysis tools (like CBMC or Frama-C)?

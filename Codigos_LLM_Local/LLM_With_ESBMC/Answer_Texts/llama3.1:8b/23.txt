@@ -1,0 +1,44 @@
+**1) Issue Found:**
+
+The issue found by ESBMC is a dereference failure of an invalidated dynamic object, which occurs when the program attempts to access memory that has already been freed.
+
+Specifically, the property violated is:
+
+*   Dereference failure: invalidated dynamic object freed
+
+This indicates that the `q` pointer is being used after the block of memory it points to has been freed.
+
+**2) Fixed Code:**
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 1;
+    p[1] = 2;
+    int *q = (int *)realloc(p, 4 * sizeof(int));
+    if (q == NULL) {
+        free(p);
+        return 1;
+    }
+    // Free 'p' before assigning new values to 'q'
+    free(p);
+    
+    q[0] = 3;
+    q[1] = 4;
+    assert(q[1] == 4); // Use q[1] instead of q[3]
+    free(q);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+
+The fix works by ensuring that the memory block `p` is freed before assigning new values to `q`. This prevents the dereference failure caused by accessing the already freed memory block. Additionally, we use `q[1]` instead of `q[3]`, as the array indices are 0-based.
+
+By making these changes, the program ensures that it does not attempt to access memory that has been freed, thus preventing the violation of the dereference failure property.

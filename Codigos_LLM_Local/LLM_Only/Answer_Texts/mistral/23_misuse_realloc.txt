@@ -1,0 +1,32 @@
+ 1) Issue Found:
+The code has a memory leak due to freeing the incorrect pointer. In this case, the pointer `p` is freed before the newly allocated memory with `q`. The variable `p` still holds valid data that should not be deallocated before `q`. This results in a memory leak.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 1;
+    p[1] = 2;
+    int *q = (int *)realloc(p, 4 * sizeof(int));
+    if (q == NULL) {
+        free(p);
+        return 1;
+    }
+    p = q;   // Assign the new pointer to 'p' to avoid memory leak.
+    p[2] = 3;
+    p[3] = 4;
+    assert(p[3] == 4);
+    free(p);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+By assigning the new pointer obtained from `realloc(p, 4 * sizeof(int))` to the original pointer `p`, we prevent memory leakage by ensuring that the new memory block is managed instead of the old one. The old memory block allocated for 2 integers is now deallocated correctly when `free(p)` is called later in the code.
+

@@ -1,0 +1,27 @@
+ 1) Issue Found:
+The code contains an integer overflow vulnerability. When multiplication happens between `INT_MAX` (2147483647) and 2, the result exceeds the maximum representable value for an int (4294967294), which violates the signed integer overflow property.
+
+2) Fixed Code:
+To fix this issue, you can use a larger data type like long long to store intermediate results and final output. Here's the corrected version of the code:
+
+```c
+#include <assert.h>
+#include <limits.h>
+
+long long multiply(int a, int b) {
+    long long c = (long long)a * b;
+    return c;
+}
+
+int main(void) {
+    int a = INT_MAX;
+    int b = 2;
+    long long c = multiply(a, b);
+    assert(c >= a);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+By using the `long long` data type instead of `int`, we can store intermediate and final results that exceed the maximum representable value for an int. The cast to `long long` ensures that there is no loss of data during the multiplication operation, which prevents integer overflow from occurring in this instance.
+

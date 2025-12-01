@@ -1,0 +1,44 @@
+### 1\) Issue Found
+
+  * **Vulnerability:** Out-of-bounds read (Buffer Overread).
+  * **Violated Property:** Memory Safety / Valid Dereference.
+  * **Details:** The loop condition `i <= n` causes an **off-by-one error**. When `i` equals `n`, the code attempts to access `a[n]`. Since C arrays are zero-indexed (from `0` to `n-1`), accessing index `n` reads memory outside the allocated buffer, leading to undefined behavior. In `main`, this reads `v[3]`, which does not exist.
+
+-----
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int count_positive(const int *a, int n) {
+    int c = 0;
+    // Fix: Changed condition from 'i <= n' to 'i < n'
+    for (int i = 0; i < n; ++i) {
+        if (a[i] > 0) {
+            ++c;
+        }
+    }
+    return c;
+}
+
+int main(void) {
+    int v[3] = {1, -1, 2};
+    int c = count_positive(v, 3);
+    assert(c == 2);
+    return 0;
+}
+```
+
+-----
+
+### 3\) Why This Fix Works
+
+The root cause was the loop termination condition allowing the iterator `i` to reach `n`. In C, an array of size $N$ has valid indices in the range $[0, N-1]$.
+
+  * **Original Code:** Iterated from $0$ to $N$ (inclusive), causing an access at `a[N]`.
+  * **Fixed Code:** Restricts the loop to `i < n`, ensuring `i` only ranges from $0$ to $N-1$. This guarantees that every memory access `a[i]` remains within the valid bounds of the allocated array.
+
+-----
+
+**Would you like me to generate a CBMC verification command to prove this fix is safe?**

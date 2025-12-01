@@ -1,0 +1,27 @@
+Here's the analysis:
+
+**1) Issue Found:**
+- **Dangling Pointer Vulnerability:** The `store_address` function returns a pointer to a local variable `x`, which goes out of scope once the function returns. This leaves the returned pointer pointing to invalid memory, causing undefined behavior when accessed.
+- **Violated Property (SPASS):** "No dangling pointers"
+
+**2) Fixed Code:**
+\\\`c
+#include <assert.h>
+
+int x = 5; // move declaration to file scope
+
+int *store_address(void) {
+    return &x;
+}
+
+int main(void) {
+    int *q = store_address();
+    int v = *q;
+    assert(v == 5);
+    return 0;
+}
+\\\`
+
+**3) Why This Fix Works:**
+By moving the declaration of `x` to file scope, we ensure that it remains in memory throughout the execution of the program. The `store_address` function now returns a pointer to a valid global variable, avoiding the dangling pointer issue.
+

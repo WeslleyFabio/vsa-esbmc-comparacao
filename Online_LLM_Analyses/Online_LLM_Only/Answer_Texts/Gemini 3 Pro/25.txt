@@ -1,0 +1,42 @@
+### 1\) Issue Found
+
+  * **Vulnerability:** Array Out-of-Bounds Access (Buffer Over-read).
+  * **Violated Property:** Memory safety (invalid pointer dereference).
+  * **Details:** The loop condition `i <= n` iterates one time too many. In `main`, `n` is passed as `3`, matching the array size. However, the valid indices for `v[3]` are `0`, `1`, and `2`. The loop attempts to access `a[3]`, which is undefined behavior and causes verification to fail.
+
+-----
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int sum_array(const int *a, int n) {
+    int s = 0;
+    // Fix: Changed condition from 'i <= n' to 'i < n'
+    for (int i = 0; i < n; ++i) {
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int v[3] = {1, 2, 3};
+    int s = sum_array(v, 3);
+    assert(s == 6);
+    return 0;
+}
+```
+
+-----
+
+### 3\) Why This Fix Works
+
+This fix addresses a classic **off-by-one error**.
+
+  * **Zero-based Indexing:** In C, an array of size $N$ has valid indices ranging from $0$ to $N-1$.
+  * **Loop Bounds:** The original code used `i <= n`, attempting to access index $N$ (the 4th element in a 3-element array). By changing the condition to `i < n`, the loop terminates after index $N-1$, ensuring all memory accesses remain within the allocated bounds of the array.
+
+-----
+
+**Would you like me to add ACSL (ANSI/ISO C Specification Language) annotations to this code to formally prove its correctness?**

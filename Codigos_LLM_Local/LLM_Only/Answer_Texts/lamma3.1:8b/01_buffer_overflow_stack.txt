@@ -1,0 +1,41 @@
+**Analysis of the Code and Verification Report**
+
+The code provided is a C function `copy_and_sum` that attempts to copy a string into a fixed-size buffer and then sum up the ASCII values of its characters. However, the formal verification report indicates an issue.
+
+### 1) Issue Found:
+
+- **Vulnerability:** Buffer overflow vulnerability in the `copy_and_sum` function.
+- **Violated Property:** "The loop copying the string into buf should not exceed the bounds of the buffer."
+
+### 2) Fixed Code:
+
+\\\`c
+#include <assert.h>
+#include <string.h>
+
+int copy_and_sum(const char *src) {
+    char buf[8];
+    int sum = 0;
+    size_t len = strlen(src);
+    for (size_t i = 0; i < len; ++i) {
+        if(i >= sizeof(buf)) break; // Ensure we don't overflow
+        buf[i] = src[i];
+    }
+    for (size_t i = 0; i < sizeof(buf); ++i) {
+        sum += (unsigned char)buf[i];
+    }
+    return sum;
+}
+
+int main(void) {
+    const char *s = "ABCDEFGH";
+    int result = copy_and_sum(s);
+    assert(result != 0);
+    return 0;
+}
+\\\`
+
+### 3) Why This Fix Works:
+
+The original code attempted to copy characters into the `buf` array without checking if it has already reached its maximum capacity. The root cause of the issue was that the loop condition in the first for loop was incorrectly set to `i <= len`, allowing it to go out of bounds and potentially overflow the buffer. To fix this, we changed the loop condition back to `i < len` but added a check within the loop to break when `i >= sizeof(buf)`. This ensures that the copying stops before attempting to write beyond the end of the `buf` array, preventing any potential buffer overflows.
+

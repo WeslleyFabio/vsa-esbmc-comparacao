@@ -1,0 +1,46 @@
+### 1\) Issue Found:
+
+**Buffer Overflow (Out-of-bounds Write)**
+The vulnerability lies in the loop condition `i <= len` within `copy_and_sum`.
+
+  * The input string `"ABCDEFGH"` has a length of 8.
+  * The loop iterates from `0` to `8` (inclusive), attempting to write 9 bytes (the 8 characters plus the null terminator `\0`) into `buf`.
+  * Since `buf` is declared as `char buf[8]`, writing to `buf[8]` constitutes a stack-based buffer overflow.
+
+### 2\) Fixed Code:
+
+```c
+#include <assert.h>
+#include <string.h>
+
+int copy_and_sum(const char *src) {
+    char buf[8] = {0}; // Initialize to 0 to prevent reading uninitialized memory
+    int sum = 0;
+    size_t len = strlen(src);
+    
+    // Protection: Ensure we do not exceed the buffer size
+    // We iterate while i <= len (to capture null terminator if space allows)
+    // AND i < sizeof(buf) to strictly prevent overflow.
+    for (size_t i = 0; i <= len && i < sizeof(buf); ++i) {
+        buf[i] = src[i];
+    }
+    
+    for (size_t i = 0; i < sizeof(buf); ++i) {
+        sum += (unsigned char)buf[i];
+    }
+    return sum;
+}
+
+int main(void) {
+    const char *s = "ABCDEFGH";
+    int result = copy_and_sum(s);
+    assert(result != 0);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works:
+
+The fix introduces a compound condition in the copy loop: `i < sizeof(buf)`. This acts as a hard boundary check, ensuring that regardless of the source string's length, the function never writes to an index outside the allocated 8 bytes of `buf`. Additionally, initializing `buf` to `{0}` ensures that if the source string is shorter than the buffer, the second loop (which sums the entire buffer) does not read uninitialized stack memory.
+
+Would you like me to generate a CBMC verification script to prove this fix holds?

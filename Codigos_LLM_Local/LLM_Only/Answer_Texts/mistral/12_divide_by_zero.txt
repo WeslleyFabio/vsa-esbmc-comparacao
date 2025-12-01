@@ -1,0 +1,30 @@
+ 1) Issue Found:
+The code contains a division-by-zero vulnerability. This occurs in the `safe_divide` function when it receives an argument `b` equal to zero, causing the division operation to fail and potentially leading to undefined behavior. Specifically, in this case, the assert statement at the end of `main()` is violated due to the division by zero.
+
+2) Fixed Code:
+To fix the issue, we can add a check for division-by-zero before performing the actual division operation:
+
+```c
+#include <stdio.h>
+#include <assert.h>
+
+int safe_divide(int a, int b) {
+    if (b == 0) {
+        printf("Error: Division by zero.\n");
+        return 0;
+    }
+    return a / b;
+}
+
+int main(void) {
+    int x = 10;
+    int y = 0;
+    int z = safe_divide(x, y);
+    assert(z == 0); // This will never be true when the fix is applied.
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The fix works by adding a condition to check if `b` is equal to zero before performing the division operation. If `b` is zero, the function outputs an error message instead of attempting the division and potentially causing undefined behavior. By doing so, the code no longer contains the division-by-zero vulnerability and will behave as expected. Additionally, the assert statement in the `main()` function becomes unnecessary since the fix guarantees that the division operation will not fail with a zero divisor.
+

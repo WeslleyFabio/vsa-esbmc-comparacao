@@ -1,0 +1,46 @@
+### 1\) Issue Found:
+
+**Memory Leak**
+The program allocates memory on the heap using `malloc` inside the `allocate_and_fill` function but fails to release it using `free` before the `main` function terminates. Formal verification tools (such as CBMC or Frama-C) flag this as a resource leak violation because the pointer `data` goes out of scope while still holding a reference to allocated memory.
+
+### 2\) Fixed Code:
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int *allocate_and_fill(int n, int value) {
+    // Good practice: protect against non-positive n, though not strictly the leak cause
+    if (n <= 0) return NULL;
+
+    int *p = (int *)malloc((size_t)n * sizeof(int));
+    if (!p) {
+        return NULL;
+    }
+    for (int i = 0; i < n; ++i) {
+        p[i] = value;
+    }
+    return p;
+}
+
+int main(void) {
+    int *data = allocate_and_fill(4, 7);
+    
+    // Ensure allocation succeeded before usage
+    assert(data != NULL);
+    
+    int ok = data[0] == 7;
+    assert(ok);
+    
+    // FIX: Release the allocated memory
+    free(data);
+    
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works:
+
+Formal verification tools track the lifecycle of heap-allocated objects. A correct verification trace requires that every successful `malloc` is matched with a corresponding `free` on all possible execution paths. By adding `free(data)` at the end of `main`, we explicitly deallocate the memory, satisfying the property that no memory is left leaked upon program exit.
+
+Would you like me to explain how to detect this using a specific tool like CBMC or Valgrind?

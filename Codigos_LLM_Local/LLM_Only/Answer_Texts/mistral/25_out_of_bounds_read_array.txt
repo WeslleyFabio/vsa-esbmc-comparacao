@@ -1,0 +1,28 @@
+ 1) Issue Found:
+The code contains a logic error in the `sum_array()` function. The for loop should iterate up to `n-1`, not `n`. The issue is that accessing `a[n]` when `n` is the array size will lead to an out-of-bounds memory access, which can result in undefined behavior.
+
+2) Fixed Code:
+Here's a corrected version of the C code:
+
+```c
+#include <assert.h>
+
+int sum_array(const int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n; ++i) {
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int v[3] = {1, 2, 3};
+    int s = sum_array(v, 3);
+    assert(s == 6);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The fix works by updating the loop condition to `i < n` instead of `i <= n`, which ensures that the last element (index `n-1`) is correctly included in the sum calculation, and avoids accessing memory outside the bounds of the array.
+

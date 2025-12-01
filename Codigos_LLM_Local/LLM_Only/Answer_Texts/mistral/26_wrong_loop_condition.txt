@@ -1,0 +1,29 @@
+ 1) Issue Found:
+The function `count_positive` has a buffer overflow vulnerability. The loop index `i` in the for-loop iterates beyond the array bounds, causing the access of memory location outside the allocated array when `n > 0`. This leads to undefined behavior and potential security risks.
+
+2) Fixed Code:
+\\\`c
+#include <assert.h>
+
+int count_positive(const int *a, int n) {
+    int c = 0;
+    for (int i = 0; i < n; ++i) {
+        if (a[i] > 0) {
+            ++c;
+        }
+    }
+    return c;
+}
+
+int main(void) {
+    int v[3] = {1, -1, 2};
+    int c = count_positive(v, 3);
+    assert(c == 2);
+    return 0;
+}
+\\\`
+The fix involves changing the loop condition to `i < n`, ensuring that the index `i` never exceeds the size of the array `a`.
+
+3) Why This Fix Works:
+The root cause of the issue is the incorrect loop condition `i <= n` which allows the program to access memory outside the allocated array when `n > 0`. By changing the loop condition to `i < n`, we ensure that the index `i` will always be within the bounds of the allocated array, preventing buffer overflow and ensuring proper functioning of the program.
+

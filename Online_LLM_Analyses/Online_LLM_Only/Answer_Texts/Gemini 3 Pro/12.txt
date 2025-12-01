@@ -1,0 +1,34 @@
+### 1\) Issue Found
+
+**Division by Zero**: The function `safe_divide` performs the operation `a / b` without checking if `b` is zero. In `main`, the function is called with `y = 0`, causing a runtime error (Undefined Behavior) and a formal verification failure regarding arithmetic safety.
+
+-----
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int safe_divide(int a, int b) {
+    if (b == 0) {
+        return 0; // Handle division by zero safely
+    }
+    return a / b;
+}
+
+int main(void) {
+    int x = 10;
+    int y = 0;
+    int z = safe_divide(x, y);
+    assert(z == 0);
+    return 0;
+}
+```
+
+-----
+
+### 3\) Why This Fix Works
+
+The fix introduces a conditional check `if (b == 0)` before the division operation. This ensures that the program never executes a division instruction with a zero denominator, thus preventing the undefined behavior. By returning `0` in the error case, the function satisfies the specific assertion `z == 0` in `main`, making the verification pass.
+
+Would you like me to show you how to write a formal contract (like ACSL) for this function to verify it with tools like Frama-C?

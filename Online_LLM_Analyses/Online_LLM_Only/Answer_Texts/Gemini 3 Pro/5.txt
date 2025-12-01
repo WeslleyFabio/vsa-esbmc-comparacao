@@ -1,0 +1,46 @@
+Here is the analysis of the provided C code and verification report.
+
+### 1\) Issue Found
+
+  * **Vulnerability:** Use-After-Free (UAF).
+  * **Violated Property:** Memory safety / Pointer validity.
+  * **Explanation:** The pointer `data` is freed using `free(data)` before it is passed to `sum_array`. Inside `sum_array`, the code attempts to dereference `a[i]` (which aliases `data`), accessing memory that has already been deallocated.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int sum_array(int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n; ++i) {
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int *data = (int *)malloc(3 * sizeof(int));
+    if (!data) {
+        return 1;
+    }
+    data[0] = 1;
+    data[1] = 2;
+    data[2] = 3;
+    
+    // Fix: Calculate result BEFORE freeing the memory
+    int result = sum_array(data, 3);
+    
+    free(data); // Deallocation happens only after the last use
+    
+    assert(result == 6);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+The root cause of the verification failure was accessing a dangling pointer. By moving the `free(data)` call to after the `sum_array` function call, we ensure that the heap memory pointed to by `data` remains allocated and valid during the read operations inside the loop. This satisfies the formal property that all pointers must point to valid, allocated memory objects when dereferenced.
+
+Would you like me to explain how tools like **CBMC** or **Frama-C** specifically report this error?

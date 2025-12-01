@@ -1,0 +1,25 @@
+ 1) Issue Found:
+The function `is_index_valid()` incorrectly checks if the index is less than both zero and size. This leads to a logical error where an index out of bounds can still be considered valid when it is greater than the size but less than zero, as seen in the assertion failure for `r2`. The violated property here is that the function should ensure the index is within the given size range (0 inclusive and size exclusive).
+
+2) Fixed Code:
+```c
+#include <assert.h>
+
+int is_index_valid(int index, int size) {
+    if ((index >= 0) && (index < size)) {
+        return 1;
+    }
+    return 0;
+}
+
+int main(void) {
+    int r1 = is_index_valid(0, 10);
+    int r2 = is_index_valid(9, 10);
+    assert(r1 == 1);
+    assert(r2 == 0);
+    return 0;
+}
+```
+3) Why This Fix Works:
+By changing the inequality in the `if` statement to `(index >= 0) && (index < size)`, we ensure that the index is checked for both validity (greater than or equal to zero) and within the size range. This fixes the logic error and avoids the assertion failure, as the function now correctly identifies invalid indices.
+

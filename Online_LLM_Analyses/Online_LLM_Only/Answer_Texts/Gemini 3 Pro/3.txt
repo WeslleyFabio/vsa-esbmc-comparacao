@@ -1,0 +1,37 @@
+### 1\) Issue Found
+
+  * **Vulnerability:** Buffer Overflow (Out-of-Bounds Read).
+  * **Violated Property:** The verification report would flag a memory safety violation. The loop condition `i <= n` causes the program to access `arr[n]`. Since C arrays are zero-indexed, the valid indices for an array of size `n` are `0` to `n-1`. Accessing index `n` reads undefined memory beyond the array boundary.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int last_element(int *arr, int n) {
+    int last = 0;
+    // Fix: Changed condition from 'i <= n' to 'i < n'
+    for (int i = 0; i < n; ++i) {
+        last = arr[i];
+    }
+    return last;
+}
+
+int main(void) {
+    int data[4] = {1, 2, 3, 4};
+    int v = last_element(data, 4);
+    assert(v == 4);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+The root cause was an **off-by-one error** in the `for` loop condition.
+
+  * **Original Behavior:** The loop iterated while $i \le 4$. This meant it tried to access `data[4]`, which is the 5th element in a 4-element array. This is undefined behavior.
+  * **Correction:** Changing the condition to $i < n$ ensures the loop stops at $i = n - 1$ (index 3). This effectively retrieves the actual last element (`4`) without crossing memory boundaries, satisfying the assertion `v == 4`.
+
+-----
+
+Would you like me to generate a formal proof script (e.g., using Frama-C or CBMC annotations) to verify this fix mathematically?

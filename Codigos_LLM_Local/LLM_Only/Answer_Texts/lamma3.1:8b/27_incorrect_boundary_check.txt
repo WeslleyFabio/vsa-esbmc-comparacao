@@ -1,0 +1,32 @@
+**Verification Report Analysis**
+
+The formal verification tool has reported a failure for the `is_index_valid` function.
+
+### Issue Found:
+
+- **Vulnerability:** The function does not correctly validate an index within a range.
+- **Violated Property:** The property of correctly validating an index within the given size is violated.
+
+The issue arises from the logical conjunction (`&&`) in the if statement, which always returns `0` because both conditions are checked regardless of their truth values.
+
+### Fixed Code:
+\\\`c
+#include <assert.h>
+
+int is_index_valid(int index, int size) {
+    return (index >= 0 && index < size);
+}
+
+int main(void) {
+    int r1 = is_index_valid(0, 10);
+    int r2 = is_index_valid(9, 10);
+    assert(r1 == 0);
+    assert(r2 == 1);
+    return 0;
+}
+\\\`
+
+### Why This Fix Works:
+
+The root cause of the issue was the incorrect logical conjunction in the if statement. The original code used `(index < 0) && (index < size)` which is always `false` because a negative number cannot be less than any positive number, including `size`. By replacing it with a single logical conjunction (`&&`) and correctly ordering the conditions to `(index >= 0 && index < size)`, we ensure that the function correctly validates an index within the given range.
+

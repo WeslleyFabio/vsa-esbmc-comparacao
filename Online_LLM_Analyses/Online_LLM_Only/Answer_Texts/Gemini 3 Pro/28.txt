@@ -1,0 +1,40 @@
+### 1\) Issue Found
+
+**Vulnerability: Buffer Overflow (Out-of-bounds Write)**
+
+The code exhibits a classic buffer overflow vulnerability. The function `fill_buffer` uses `memcpy` to copy data into `b->data` (which is 8 bytes), but specifies the copy length as `sizeof(*b)` (the size of the entire struct, which includes `data`, `flag`, and potentially padding).
+
+Because `sizeof(*b)` is larger than `sizeof(b->data)`, the `memcpy` operation writes past the end of the `data` array. This overwrites the adjacent `flag` member in memory. Consequently, the assertion `assert(b.flag == 1)` fails because `flag` has been corrupted by the overflow data.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <string.h>
+
+struct Buffer {
+    char data[8];
+    int flag;
+};
+
+void fill_buffer(struct Buffer *b, const char *src) {
+    // Fix: Use sizeof(b->data) to ensure we do not write past the array bounds
+    memcpy(b->data, src, sizeof(b->data));
+}
+
+int main(void) {
+    struct Buffer b;
+    b.flag = 1;
+    fill_buffer(&b, "ABCDEFGH");
+    assert(b.flag == 1);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+The root cause of the bug was using the size of the container structure (`sizeof(*b)`) as the write limit for one of its internal members. By changing the length argument in `memcpy` to `sizeof(b->data)` (which is exactly 8 bytes), we ensure the write operation stays strictly within the bounds of the `data` array. This prevents the `memcpy` from encroaching on the memory allocated to `flag`, preserving its value and allowing the assertion to pass.
+
+-----
+
+**Would you like me to explain how structure padding might specifically affect the magnitude of this overflow?**

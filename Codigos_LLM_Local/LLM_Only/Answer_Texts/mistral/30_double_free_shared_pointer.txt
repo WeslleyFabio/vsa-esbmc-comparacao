@@ -1,0 +1,35 @@
+ 1) Issue Found:
+- Memory Leak due to double freeing of the memory allocated for pointer `a`. This occurs because after assigning `a` to `b`, both pointers refer to the same node, and when `a` is freed, the same node is also accessed by `b` before it gets freed.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+struct Node {
+    int value;
+};
+
+int main(void) {
+    struct Node *a = (struct Node *)malloc(sizeof(struct Node));
+    if (!a) {
+        return 1;
+    }
+    a->value = 42;
+    assert(a->value == 42);
+    struct Node *b = malloc(sizeof(struct Node));
+    if (!b) {
+        free(a);
+        return 1;
+    }
+    b->value = a->value;
+    free(a);
+    assert(b->value == 42);
+    free(b);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+- In the corrected code, a new node is allocated for `b`, so both pointers don't refer to the same node anymore. After assigning the value of `a` to `b`, `a` is freed without affecting `b`. Now when `b` is also freed at the end, there is no more memory leak.
+

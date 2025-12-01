@@ -1,0 +1,39 @@
+ 1) Issue Found:
+The vulnerability in this code is a buffer overflow. In the `copy_and_sum` function, the loop for copying characters to `buf` goes one iteration beyond its bounds, writing past the end of the array. This can lead to undefined behavior, potentially including overwriting adjacent memory or causing a crash. The offending line is `buf[i] = src[i];` with `i <= len`.
+
+2) Fixed Code:
+Here's a corrected version of the code:
+
+```c
+#include <assert.h>
+#include <string.h>
+
+int copy_and_sum(const char *src, size_t srcSize) {
+    char buf[8];
+    int sum = 0;
+
+    if (srcSize > sizeof(buf)) {
+        return -1; // or throw an exception for more robust handling
+    }
+
+    memcpy(buf, src, srcSize);
+    for (size_t i = 0; i < srcSize; ++i) {
+        sum += (unsigned char)buf[i];
+    }
+    return sum;
+}
+
+int main(void) {
+    const char *s = "ABCDEFGH";
+    int result = copy_and_sum(s, strlen(s));
+    assert(result != -1); // check for error case
+    if (result != 0) {
+        assert(strlen(s) == result); // check that the sum equals the length of the input string
+    }
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The fix works by using `memcpy` to safely copy the input string into the buffer, ensuring that we don't exceed the bounds of our buffer. Additionally, I added a check for the case where the input string is larger than the buffer size. In the main function, I added assertions to ensure the sum corresponds to the length of the input string and that there was no error in the `copy_and_sum` function.
+

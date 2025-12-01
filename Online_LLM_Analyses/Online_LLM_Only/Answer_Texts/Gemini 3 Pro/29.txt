@@ -1,0 +1,44 @@
+### 1\) Issue Found
+
+**Assertion Failure**: The verification fails because the `reset_header` function clears the entire `Header` structure, including the `size` field.
+
+  * **Root Cause:** The `memset(h, 0, sizeof(*h))` instruction zeroes out all bytes in the structure.
+  * **Violated Property:** `assert(h.size == 123)` fails because `h.size` is 0 after the reset, not 123.
+
+-----
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <string.h>
+
+struct Header {
+    char tag[4];
+    int size;
+};
+
+void reset_header(struct Header *h) {
+    // Fix: Only reset the tag array, preserving the size member
+    memset(h->tag, 0, sizeof(h->tag));
+}
+
+int main(void) {
+    struct Header h;
+    h.size = 123;
+    reset_header(&h);
+    // The assertion now holds because size was not overwritten
+    assert(h.size == 123);
+    return 0;
+}
+```
+
+-----
+
+### 3\) Why This Fix Works
+
+The original code used `sizeof(*h)`, which represents the size of the entire structure (including `size` and any padding). By changing the `memset` target to `h->tag` and the length to `sizeof(h->tag)`, the operation is restricted to the character array only. This ensures that the integer `h.size` retains its assigned value of 123, satisfying the assertion in `main`.
+
+-----
+
+**Would you like me to explain how to verify this fix using a tool like CBMC or Frama-C?**

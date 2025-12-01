@@ -1,0 +1,32 @@
+ 1) Issue Found:
+The issue in this code lies in the misuse of the `memset()` function, which is intended for initializing memory with a specific value regardless of its original contents. In the provided code, `memset(h, 0, sizeof(*h));` resets the entire structure (both tag and size) to zero, overwriting the initial set `h.size = 123;`, thus violating the intended property that the size should remain unchanged after calling `reset_header()`.
+
+2) Fixed Code:
+To fix this issue, we need to ensure that only the tag field is reset to zero, and the size remains unaltered. Here's a corrected version of the code:
+
+```c
+#include <assert.h>
+#include <string.h>
+
+struct Header {
+    char tag[4];
+    int size;
+};
+
+void reset_header(struct Header *h) {
+    memset(h->tag, 0, sizeof(h->tag));
+}
+
+int main(void) {
+    struct Header h = { "HEADER", 123 }; // Initialize tag and size at once
+    reset_header(&h);
+    assert(h.size == 123);
+    return 0;
+}
+```
+
+In this corrected version, we initialize the `h` structure with a tag and an initial size, and then only reset the tag in `reset_header()`. The original logic remains intact since the size is not changed during the reset operation.
+
+3) Why This Fix Works:
+By separating the tag and size fields and explicitly setting their initial values, we can ensure that only the tag field is overwritten when using `memset()`. This allows the size value to persist and not be affected by the reset operation, as intended in the original code.
+

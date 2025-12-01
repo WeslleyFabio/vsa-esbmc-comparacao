@@ -1,0 +1,45 @@
+Here is the analysis of the formal verification failure and the corrected code.
+
+### 1\) Issue Found
+
+**Heap Buffer Overflow (Out-of-bounds Write)**
+The function `duplicate_prefix` allocates a buffer of size `n` (`malloc(n)`) but attempts to write `n + 1` bytes into it (`memcpy(..., n + 1)`). This causes a write outside the allocated memory bounds. Additionally, the resulting string is not guaranteed to be null-terminated correctly, which leads to undefined behavior when used as a C-string.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+
+char *duplicate_prefix(const char *src, size_t n) {
+    // Allocate n bytes for content + 1 byte for the null terminator
+    char *buf = (char *)malloc(n + 1);
+    if (!buf) {
+        return NULL;
+    }
+    
+    // Copy exactly n bytes from source
+    memcpy(buf, src, n);
+    
+    // Explicitly add the null terminator at the end
+    buf[n] = '\0';
+    
+    return buf;
+}
+
+int main(void) {
+    const char *s = "hello world";
+    char *p = duplicate_prefix(s, 5);
+    assert(p != NULL);
+    // p now contains "hello\0"
+    free(p);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+This fix resolves the buffer overflow by allocating `n + 1` bytes, ensuring there is sufficient space for both the requested prefix characters and the null terminator. It changes the copy operation to copy exactly `n` bytes (preventing it from reading potentially unwanted characters or overflowing the destination) and manually sets the final byte to `\0` to ensure a valid, null-terminated C-string.
+
+Would you like me to explain how to verify this fix using a tool like CBMC or Frama-C?

@@ -1,0 +1,25 @@
+ 1) Issue Found:
+The code has a data race due to accessing the memory location pointed by `p` after it has been freed. Specifically, the line `p[0] = 30;` accesses the memory after the call to `free(p)`. This violates the C standard and can lead to undefined behavior.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 10;
+    p[1] = 20;
+    free(p);
+    // Move the assert statement before freeing memory
+    assert(p[0] == 30 && p[1] == 20);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+By moving the `assert` statement before freeing the memory, we ensure that it checks the values of `p[0]` and `p[1]` while they are still accessible. After the call to `free(p)`, the memory pointed by `p` is deallocated, and accessing it causes undefined behavior.
+

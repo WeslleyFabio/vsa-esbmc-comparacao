@@ -1,0 +1,29 @@
+**1) Issue Found:**
+
+- The code has a vulnerability where an out-of-bounds index is accessed, violating the property of safe memory access.
+- The violated property is related to array bounds checking.
+
+**2) Fixed Code:**
+```c
+#include <assert.h>
+
+int get_value(int *a, int n, int index) {
+    if (index >= 0 && index < n) { // changed <= to <
+        return a[index];
+    }
+    return 0;
+}
+
+int main(void) {
+    int v[4] = {1, 2, 3, 4};
+    int x = get_value(v, 4, 4);
+    assert(x == 0);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+
+The root cause of the issue is that the function `get_value` does not properly check if the index is within the bounds of the array. Specifically, it uses a condition `index <= n`, which allows accessing an element at index `n`. However, since arrays in C are 0-indexed, this means that attempting to access `a[n]` is out of bounds.
+
+The fix changes the condition to `index < n`, ensuring that we do not try to access an element beyond the end of the array. This prevents the dereference failure reported by ESBMC and makes the program safe.

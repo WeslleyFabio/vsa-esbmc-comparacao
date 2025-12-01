@@ -1,0 +1,35 @@
+Here is the analysis and fixed code.
+
+### 1\) Issue Found
+
+**Assertion Failure due to Unsigned Integer Underflow.**
+The variable `x` is initialized to `0u`. When `decrement(0u)` is called, the operation `0u - 1u` triggers an unsigned integer wrap-around (underflow), resulting in `UINT_MAX` (the maximum possible value for an `unsigned int`). Consequently, `y` holds `UINT_MAX`. The assertion `y < x` evaluates to `UINT_MAX < 0`, which is false, causing the verification to fail.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <limits.h>
+
+unsigned int decrement(unsigned int x) {
+    return x - 1u;
+}
+
+int main(void) {
+    unsigned int x = 0u;
+
+    // Check precondition: Only decrement if x is strictly positive
+    if (x > 0u) {
+        unsigned int y = decrement(x);
+        assert(y < x);
+    }
+    
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+This fix introduces a **precondition check** (`if (x > 0u)`). In unsigned arithmetic, `0` is the minimal value and cannot be strictly decreased. By guarding the operation, we ensure that `decrement` and the subsequent assertion `y < x` are only executed when the input is within the valid domain, effectively preventing the underflow wrap-around logic error.
+
+Would you like me to explain how to verify this fix using a formal verification tool like CBMC or Frama-C?

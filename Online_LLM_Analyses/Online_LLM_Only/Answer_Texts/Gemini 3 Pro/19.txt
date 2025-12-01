@@ -1,0 +1,31 @@
+### 1\) Issue Found
+
+**Out-of-Bounds Read (Buffer Over-read)**
+The vulnerability lies in the boundary check `index <= n`. For an array of size `n`, valid indices range strictly from `0` to `n-1`. The code permits access to `a[n]`, which is outside the allocated memory block, violating memory safety properties.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int get_value(int *a, int n, int index) {
+    // Fixed the condition to 'index < n' to prevent accessing a[n]
+    if (index >= 0 && index < n) {
+        return a[index];
+    }
+    return 0;
+}
+
+int main(void) {
+    int v[4] = {1, 2, 3, 4};
+    int x = get_value(v, 4, 4);
+    assert(x == 0);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+The root cause was an off-by-one error. By changing the condition to `index < n` (strictly less than), the code ensures that the array is only accessed at valid indices ($0$ to $n-1$). This prevents the function from reading unallocated memory at `a[4]`, causing it to correctly fall through to `return 0`, which satisfies the assertion in `main`.
+
+Would you like me to verify this against a specific formal tool like CBMC or Frama-C?

@@ -1,0 +1,28 @@
+**Formal Verification Analysis**
+
+### Issue Found:
+- **Out-of-bounds access vulnerability**: The code accesses `p[0]` without checking if the pointer `p` is valid. This can lead to a segmentation fault or undefined behavior.
+- **Violated property:** "Safe Memory Access" (i.e., accessing memory within allocated bounds).
+
+### Fixed Code:
+\\\`c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *base = (int *)malloc(3 * sizeof(int));
+    if (!base) {
+        return 1;
+    }
+    int *p = base + 3; // Accessing out-of-bounds, but this will be detected by the next line
+    assert(p >= base && p < base + 3); // Add bounds check
+    p[0] = 10;
+    assert(p[0] == 10);
+    free(base);
+    return 0;
+}
+\\\`
+
+### Why This Fix Works:
+The fix adds a bounds check using the assertion `p >= base && p < base + 3`. This ensures that `p` is within the allocated memory range before attempting to access it. If `p` were to point outside this range, the assertion would fail, preventing the out-of-bounds access and subsequent potential segmentation fault or undefined behavior.
+

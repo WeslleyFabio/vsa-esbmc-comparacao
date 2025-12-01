@@ -1,0 +1,27 @@
+### 1\) Issue Found
+
+  * **Vulnerability:** Reading uninitialized memory.
+  * **Violated Property:** The array `a[3]` is declared on the stack but never initialized. When the code attempts to read `a[0]`, `a[1]`, and `a[2]`, it accesses indeterminate (garbage) values. Consequently, the variable `s` contains an unpredictable value, causing the assertion `assert(v == 0)` to fail.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int sum_first_three(void) {
+    // Fix: Initialize the array to zeros
+    int a[3] = {0};
+    int s = a[0] + a[1] + a[2];
+    return s;
+}
+
+int main(void) {
+    int v = sum_first_three();
+    assert(v == 0);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+In C, local variables (automatic storage duration) are not zero-initialized by default; they contain whatever random data happened to be at that memory address. By explicitly initializing the array using `int a[3] = {0};`, we ensure all elements are set to `0`. This makes the sum deterministic (`0 + 0 + 0 = 0`) and allows the assertion `v == 0` to pass successfully.

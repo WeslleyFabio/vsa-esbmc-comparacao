@@ -1,0 +1,36 @@
+**Formal Verification Report Analysis**
+
+The code snippet is supposed to verify whether a given input matches the secret password. However, upon formal verification, several issues were identified.
+
+### Issue Found:
+
+- **Vulnerability:** The `check_password` function has a vulnerability that allows an attacker to bypass authentication by providing a string longer than the secret password. This issue can be attributed to a violation of the property: "If the input matches the secret password, then the function should return 0".
+- **Violated Property:** The violated property is related to the correct implementation of password matching logic.
+
+### Fixed Code:
+
+\\\`c
+#include <assert.h>
+#include <string.h>
+
+int check_password(const char *input) {
+    const char *secret = "secret";
+    if (strncmp(input, secret, strlen(secret)) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int main(void) {
+    int r = check_password("secret");
+    assert(r == 1);
+    return 0;
+}
+\\\`
+
+### Why This Fix Works:
+
+The root cause of the issue was that the original code checked whether the input string is longer than the secret password before performing a substring comparison. However, this approach introduced an unnecessary vulnerability and did not correctly implement the password matching logic.
+
+In the fixed version, we only compare the input with the secret password using `strncmp`, which stops comparing once it finds a mismatch (i.e., it does not continue to compare beyond the length of the shorter string). This ensures that the comparison is done within the bounds of both strings, preventing potential buffer overflow vulnerabilities. Additionally, the return value is corrected to 1 when the input matches the secret password.
+
