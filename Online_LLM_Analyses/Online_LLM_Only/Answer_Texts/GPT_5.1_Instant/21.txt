@@ -1,0 +1,26 @@
+Issue Found:
+
+Out-of-bounds heap write: p = base + 3 points one past the allocated 3-element array. Writing p[0] = 10 performs a write outside allocated memory.
+
+Violated property: Memory safety (no out-of-bounds access).
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *base = (int *)malloc(3 * sizeof(int));
+    if (!base) {
+        return 1;
+    }
+    int *p = base + 2;  // point to last valid element
+    p[0] = 10;          // now writing within bounds
+    assert(p[0] == 10);
+    free(base);
+    return 0;
+}
+
+
+Why This Fix Works:
+The bug occurred because the code wrote to the element at index 3 of a 3-element allocation, which is invalid. Adjusting the pointer so that p references the last valid element ensures p[0] stays within the allocated memory region.

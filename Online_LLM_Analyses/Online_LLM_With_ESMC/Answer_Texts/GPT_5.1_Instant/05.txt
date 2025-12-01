@@ -1,0 +1,45 @@
+Issue Found:
+
+The program dereferences a pointer after it has been freed, causing a use-after-free vulnerability.
+
+ESBMC reports a violation of the dereference safety property:
+“dereference failure: invalidated dynamic object”.
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+int sum_array(int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n; ++i) {
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int *data = (int *)malloc(3 * sizeof(int));
+    if (!data) {
+        return 1;
+    }
+
+    data[0] = 1;
+    data[1] = 2;
+    data[2] = 3;
+
+    /* Use the data before freeing it */
+    int result = sum_array(data, 3);
+    assert(result == 6);
+
+    free(data);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is that the original program calls sum_array(data, 3) after data has been freed, leaving the pointer pointing to an invalid memory region.
+
+By moving the free(data) call after all accesses, the pointer remains valid during sum_array, preventing ESBMC’s reported dereference of an invalid dynamic object.
+Thus, the use-after-free condition is eliminated.

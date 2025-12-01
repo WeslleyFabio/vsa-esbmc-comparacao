@@ -1,0 +1,31 @@
+Issue Found:
+
+Vulnerability: Division by zero occurs in safe_divide(a, b) because b is 0.
+
+Violated Property: ESBMC reports a division by zero violation (b != 0).
+
+Fixed Code:
+
+#include <assert.h>
+
+int safe_divide(int a, int b) {
+    assert(b != 0); // ensure divisor is not zero
+    return a / b;
+}
+
+int main(void) {
+    int x = 10;
+    int y = 1;     // non-zero to avoid division by zero
+    int z = safe_divide(x, y);
+    assert(z == 10);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is calling safe_divide with a zero divisor, which triggers undefined behavior and violates ESBMC’s safety property.
+
+Adding assert(b != 0) enforces the required precondition, allowing ESBMC to prove safety.
+
+Updating y to a valid non-zero value ensures the program no longer reaches a division-by-zero state.

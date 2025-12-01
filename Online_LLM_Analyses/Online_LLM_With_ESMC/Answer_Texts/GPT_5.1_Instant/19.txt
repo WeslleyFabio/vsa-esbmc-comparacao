@@ -1,0 +1,31 @@
+Issue Found:
+
+Vulnerability: Out-of-bounds array access in get_value().
+
+Violated Property: Dereference failure: array bounds violated — ESBMC reports an invalid access when index == n, because valid indices are 0 .. n-1.
+
+Fixed Code:
+
+#include <assert.h>
+
+int get_value(int *a, int n, int index) {
+    /* index must be strictly less than n */
+    if (index >= 0 && index < n) {
+        return a[index];
+    }
+    return 0;
+}
+
+int main(void) {
+    int v[4] = {1, 2, 3, 4};
+    int x = get_value(v, 4, 4);
+    assert(x == 0);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is the incorrect boundary check index <= n, which permits index == n, an invalid position outside the array.
+
+Changing the condition to index < n enforces valid indexing (0..n-1), preventing ESBMC’s reported out-of-bounds dereference and ensuring safe memory access.

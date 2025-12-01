@@ -1,0 +1,34 @@
+Issue Found:
+
+Vulnerability: Out-of-bounds pointer arithmetic and dereference.
+
+base points to an array of 3 integers; p = base + 3 points one past the allocated block, which is not a valid location for dereference.
+
+Violated Property: dereference failure: array bounds violated.
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *base = (int *)malloc(3 * sizeof(int));
+    if (!base) {
+        return 1;
+    }
+
+    /* Corrected: use a valid index inside the allocated range */
+    int *p = base + 2;  // last valid element
+    p[0] = 10;
+    assert(p[0] == 10);
+
+    free(base);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was that base + 3 produces a pointer one past the allocated region, which may be formed but cannot be dereferenced. ESBMC correctly reports this as an array-bounds violation.
+
+By changing p to point to base + 2, the program writes to the last valid element of the allocated array. This ensures all pointer dereferences remain within bounds, allowing ESBMC to verify memory safety.

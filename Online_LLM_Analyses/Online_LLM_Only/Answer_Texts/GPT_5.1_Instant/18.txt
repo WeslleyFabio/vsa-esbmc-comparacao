@@ -1,0 +1,29 @@
+Issue Found:
+
+The function absolute_value returns the input value even when it is negative, violating the intended absolute-value property.
+
+The formal verification failure arises because the assertion assert(v == 5); is violated when absolute_value(-5) returns -5.
+
+Fixed Code:
+
+#include <assert.h>
+
+int absolute_value(int x) {
+    if (x < 0) {
+        return -x;   // Correctly negate negative values
+    }
+    return x;
+}
+
+int main(void) {
+    int v = absolute_value(-5);
+    assert(v == 5);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The original implementation failed to modify negative inputs, violating the expected contract of an absolute-value function.
+
+Negating negative values ensures the function always returns a non-negative result, satisfying the postcondition required by the assertion.

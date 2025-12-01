@@ -1,0 +1,31 @@
+Issue Found:
+
+The function max_of_two contains a logic bug: it returns the smaller value when a < b, instead of the larger one.
+
+This causes the post-condition assert(m == 5) to fail because max_of_two(3, 5) incorrectly returns 3.
+
+Violated property: Functional correctness — specifically, the expected behavior of a max function.
+
+Fixed Code:
+
+#include <assert.h>
+
+int max_of_two(int a, int b) {
+    if (a > b) {
+        return a;
+    }
+    return b;
+}
+
+int main(void) {
+    int m = max_of_two(3, 5);
+    assert(m == 5);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was an inverted comparison: the original implementation tested a < b but returned a, which is the smaller value.
+
+By changing the condition to a > b and returning a only when it is indeed the maximum, the function now satisfies its intended contract. The assertion now holds for all valid inputs.

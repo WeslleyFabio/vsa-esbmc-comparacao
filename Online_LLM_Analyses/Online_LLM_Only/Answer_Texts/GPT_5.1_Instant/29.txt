@@ -1,0 +1,34 @@
+1) Issue Found:
+
+The program asserts that h.size == 123 after calling reset_header(&h), but reset_header uses memset to zero the entire struct, overwriting both tag and size.
+
+Violated property: Postcondition expecting h.size to remain unchanged is false → assertion failure.
+
+2) Fixed Code:
+
+#include <assert.h>
+#include <string.h>
+
+struct Header {
+    char tag[4];
+    int size;
+};
+
+void reset_header(struct Header *h) {
+    /* Only reset the tag, not the size field */
+    memset(h->tag, 0, sizeof(h->tag));
+}
+
+int main(void) {
+    struct Header h;
+    h.size = 123;
+    reset_header(&h);
+    assert(h.size == 123);
+    return 0;
+}
+
+
+3) Why This Fix Works:
+
+The root cause is that memset(h, 0, sizeof(*h)) zeroed the entire struct, erasing size.
+By restricting the memset to only the tag array, the function preserves size, satisfying the assertion and the intended semantics.

@@ -1,0 +1,35 @@
+Issue Found:
+
+The program returns a pointer to a stack-allocated variable (x) that goes out of scope once store_address() returns.
+
+ESBMC reports a dereference failure: accessing an expired variable pointer (x).
+
+Violated property: dereference of invalid (dangling) pointer.
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+int *store_address(void) {
+    int *p = malloc(sizeof(int));
+    *p = 5;
+    return p;
+}
+
+int main(void) {
+    int *q = store_address();
+    int v = *q;
+    assert(v == 5);
+    free(q);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was returning the address of a local stack variable, which becomes invalid after the function returns.
+
+Allocating memory on the heap ensures that the pointed-to object remains valid in main().
+
+ESBMC will no longer detect a dereference of an expired pointer because q now refers to a live heap object until explicitly freed.

@@ -1,0 +1,32 @@
+Issue Found:
+
+Vulnerability: Off-by-one array access in the loop for (int i = 0; i <= n; ++i) causes arr[n] to be read, but the valid last index is n-1.
+
+Violated Property: Dereference failure: array bounds violated (out-of-bounds read reported by ESBMC).
+
+Fixed Code:
+
+#include <assert.h>
+
+int last_element(int *arr, int n) {
+    int last = 0;
+    /* iterate only over valid indices 0..n-1 */
+    for (int i = 0; i < n; ++i) {
+        last = arr[i];
+    }
+    return last;
+}
+
+int main(void) {
+    int data[4] = {1, 2, 3, 4};
+    int v = last_element(data, 4);
+    assert(v == 4);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was the loop condition i <= n, which caused an access to arr[n], outside the array’s allocated range.
+
+Changing the condition to i < n ensures i remains within [0, n-1], preventing the out-of-bounds read and satisfying ESBMC’s memory-safety checks.

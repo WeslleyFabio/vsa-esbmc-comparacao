@@ -1,0 +1,31 @@
+Issue Found:
+
+Out-of-bounds array access: get_value allows index == n, but valid array indices go from 0 to n-1.
+
+Violated property: Memory safety / array bounds — potential invalid read at a[n].
+
+Fixed Code:
+
+#include <assert.h>
+
+int get_value(int *a, int n, int index) {
+    /* Ensure index is strictly within bounds */
+    if (index >= 0 && index < n) {
+        return a[index];
+    }
+    return 0;
+}
+
+int main(void) {
+    int v[4] = {1, 2, 3, 4};
+    int x = get_value(v, 4, 4);
+    assert(x == 0);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was an incorrect boundary check (index <= n), which permitted reading from one element past the array.
+
+Changing the condition to index < n ensures all accesses stay within the valid bounds of the array.

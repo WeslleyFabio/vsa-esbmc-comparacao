@@ -1,0 +1,28 @@
+You are an expert in formal verification.
+
+Analyze the code and its verification report, and provide a concise explanation following exactly this structure:
+
+1) Issue Found:
+- Identify the vulnerability or formal verification failure.
+- Mention the violated property if applicable.
+
+2) Fixed Code:
+- Provide a corrected version of the full C code.
+- Use a \\\`c fenced code block.
+- Keep the original logic whenever possible.
+
+3) Why This Fix Works:
+- Brief technical explanation describing the root cause.
+
+--------------------------
+C Source Code:
+\\\`c
+{colocar o codigo C aqui no meio}
+\\\`
+
+ESBMC Report:
+\`\`\`text
+{colocar o report do ESBMC aqui no meio}
+\`\`\`
+
+Respond in English only.

@@ -1,0 +1,30 @@
+Issue Found:
+
+Double free vulnerability: After calling free(buf), the pointer buf is not set to NULL, so the subsequent if (buf != NULL) check still evaluates true, causing a second free(buf).
+
+Violated property: Memory safety — no double free.
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+char *make_buffer(int n) {
+    char *p = (char *)malloc((size_t)n);
+    return p;
+}
+
+int main(void) {
+    char *buf = make_buffer(16);
+    assert(buf != NULL);
+    free(buf);
+    buf = NULL;     // Prevent double free
+    if (buf != NULL) {
+        free(buf);
+    }
+    return 0;
+}
+
+
+Why This Fix Works:
+Setting buf to NULL after the first free ensures the later conditional check fails, preventing a second call to free on the same pointer. This removes the root cause of the double free error and restores memory safety.

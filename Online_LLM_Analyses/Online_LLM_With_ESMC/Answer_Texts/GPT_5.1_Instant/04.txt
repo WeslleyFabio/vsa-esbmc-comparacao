@@ -1,0 +1,35 @@
+Issue Found:
+
+Vulnerability: NULL-pointer dereference. The function first_char_is_a unconditionally accesses s[0] even when s is NULL.
+
+Violated Property: dereference failure: NULL pointer (reported by ESBMC).
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+int first_char_is_a(const char *s) {
+    if (s == NULL) {
+        return 0; // safely handle NULL pointer
+    }
+    if (s[0] == 'a') {
+        return 1;
+    }
+    return 0;
+}
+
+int main(void) {
+    char *p = NULL;
+    int r = first_char_is_a(p);
+    assert(r == 0);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is that first_char_is_a dereferences s without validating it, which causes a NULL-pointer dereference when main passes p = NULL.
+
+The fix adds a NULL check before accessing s[0], ensuring that no memory is dereferenced when s is NULL.
+ESBMC no longer finds a dereference violation because the unsafe memory access path is eliminated.

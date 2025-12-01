@@ -1,0 +1,42 @@
+You are an expert in formal verification.
+
+Analyze the code and its verification report, and provide a concise explanation following exactly this structure:
+
+1) Issue Found:
+- Identify the vulnerability or formal verification failure.
+- Mention the violated property if applicable.
+
+2) Fixed Code:
+- Provide a corrected version of the full C code.
+- Use a \\\`c fenced code block.
+- Keep the original logic whenever possible.
+
+3) Why This Fix Works:
+- Brief technical explanation describing the root cause.
+
+--------------------------
+C Source Code:
+\\\`c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 1;
+    p[1] = 2;
+    int *q = (int *)realloc(p, 4 * sizeof(int));
+    if (q == NULL) {
+        free(p);
+        return 1;
+    }
+    free(p);
+    q[2] = 3;
+    q[3] = 4;
+    assert(q[3] == 4);
+    free(q);
+    return 0;
+}
+\\\`

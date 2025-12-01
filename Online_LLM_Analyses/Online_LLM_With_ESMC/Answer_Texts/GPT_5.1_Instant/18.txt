@@ -1,0 +1,29 @@
+Issue Found:
+
+The function absolute_value contains a logic error: when x < 0, it incorrectly returns x instead of -x.
+
+Violated property: The assertion assert(v == 5) fails because absolute_value(-5) returns -5.
+
+Fixed Code:
+
+#include <assert.h>
+
+int absolute_value(int x) {
+    if (x < 0) {
+        return -x;   // Correct absolute value for negative numbers
+    }
+    return x;
+}
+
+int main(void) {
+    int v = absolute_value(-5);
+    assert(v == 5);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is an incorrect sign handling when x is negative. ESBMC detects that the returned value does not satisfy the postcondition implied by the assertion.
+
+By returning -x when x < 0, the function now computes the correct absolute value, ensuring that absolute_value(-5) equals 5, thus preventing the assertion failure reported by ESBMC.

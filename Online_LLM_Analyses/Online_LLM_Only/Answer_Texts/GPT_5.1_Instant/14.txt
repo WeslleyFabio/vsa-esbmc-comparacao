@@ -1,0 +1,28 @@
+Issue Found:
+
+Use of uninitialized variables: The array a[3] is never initialized, so reading a[0], a[1], and a[2] produces undefined behavior.
+
+Violated property: Determinism / memory-safety property — the verifier cannot prove v == 0 because s is computed from uninitialized memory.
+
+Fixed Code:
+
+#include <assert.h>
+
+int sum_first_three(void) {
+    int a[3] = {0, 0, 0};   // Initialize all elements
+    int s = a[0] + a[1] + a[2];
+    return s;
+}
+
+int main(void) {
+    int v = sum_first_three();
+    assert(v == 0);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The failure occurred because reading uninitialized stack memory results in nondeterministic values, preventing the assertion from being guaranteed.
+
+Initializing the array removes the undefined behavior, making the computed sum deterministically zero, which satisfies the assertion.

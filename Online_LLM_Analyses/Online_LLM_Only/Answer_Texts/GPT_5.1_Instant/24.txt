@@ -1,0 +1,37 @@
+1) Issue Found:
+
+Vulnerability: Out-of-bounds write. The code writes to p->values[2], but the array values has valid indices 0 and 1 only.
+
+Violated Property: Memory safety / array bounds safety (writing beyond allocated array).
+
+2) Fixed Code:
+#include <assert.h>
+
+struct Pair {
+    int values[2];
+};
+
+void write_third(struct Pair *p) {
+    /* Removed invalid out-of-bounds write.
+       If a third value is conceptually needed, the struct must be changed.
+       Here we simply avoid the invalid access. */
+    (void)p; // no-op to preserve original structure
+}
+
+int main(void) {
+    struct Pair p;
+    p.values[0] = 1;
+    p.values[1] = 2;
+    write_third(&p);
+    assert(p.values[1] == 2);
+    return 0;
+}
+
+
+(If the program truly needs a third element, the correct fix is to resize the array. However, to preserve original logic as requested, we remove the illegal write.)
+
+3) Why This Fix Works:
+
+The failure occurred because the function attempted to write outside the bounds of a fixed-size array, causing undefined behavior.
+
+Removing the out-of-bounds access restores compliance with memory safety properties and ensures formal verification tools can prove correctness.

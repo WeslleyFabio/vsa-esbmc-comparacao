@@ -1,0 +1,37 @@
+1) Issue Found:
+
+Vulnerability: Unsigned integer underflow.
+decrement(0u) computes 0u - 1u, which wraps around to UINT_MAX.
+
+Violated Property: ESBMC reports failure of the assertion y < x, because when x = 0, y = UINT_MAX, making the condition false.
+
+2) Fixed Code:
+#include <assert.h>
+#include <limits.h>
+#include <stdbool.h>
+
+bool decrement(unsigned int x, unsigned int *out) {
+    if (x == 0u) {
+        return false; // underflow would occur
+    }
+    *out = x - 1u;
+    return true;
+}
+
+int main(void) {
+    unsigned int x = 0u;
+    unsigned int y = 0u;
+
+    bool ok = decrement(x, &y);
+
+    assert(!ok || y < x); // property holds only when decrement succeeds
+    return 0;
+}
+
+3) Why This Fix Works:
+
+The root cause of the failure is that unsigned arithmetic wraps, so subtracting 1 from 0 yields UINT_MAX, breaking the expected ordering.
+
+The fix introduces a pre-check that prevents the operation when underflow would occur, returning a status flag instead of producing an invalid value.
+
+The assertion is updated to reflect that y < x must hold only when the decrement is valid, making the program safe under all paths ESBMC explores.

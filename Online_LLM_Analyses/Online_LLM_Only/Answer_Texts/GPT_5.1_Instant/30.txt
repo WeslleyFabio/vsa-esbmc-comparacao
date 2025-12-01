@@ -1,0 +1,38 @@
+Issue Found:
+
+Vulnerability: Double free: both a and b point to the same allocated object, so calling free(a) followed by free(b) frees the same memory twice.
+
+Violated Property: Memory safety / no-double-free (typical formal verification safety property).
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+struct Node {
+    int value;
+};
+
+int main(void) {
+    struct Node *a = (struct Node *)malloc(sizeof(struct Node));
+    if (!a) {
+        return 1;
+    }
+
+    struct Node *b = a;  // alias, do not free twice
+
+    a->value = 42;
+    assert(b->value == 42);
+
+    free(a);
+    /* b should not be freed because it aliases a */
+
+    return 0;
+}
+
+
+Why This Fix Works:
+
+a and b refer to the same allocation; freeing one invalidates both pointers.
+
+Removing the second free(b) eliminates the double-free, ensuring memory is released exactly once and satisfying memory-safety properties.

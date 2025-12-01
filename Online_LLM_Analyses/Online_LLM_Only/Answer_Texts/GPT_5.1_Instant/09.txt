@@ -1,0 +1,38 @@
+Issue Found:
+
+Integer overflow occurs when computing c = a + b with a = INT_MAX and b = 10.
+
+This violates the absence of overflow property and causes undefined behavior, making the assertion unreliable.
+
+Fixed Code:
+
+#include <assert.h>
+#include <limits.h>
+#include <stdbool.h>
+
+bool add_ints(int a, int b, int *out) {
+    // Check for overflow before performing addition
+    if ((b > 0 && a > INT_MAX - b) ||
+        (b < 0 && a < INT_MIN - b)) {
+        return false; // overflow detected
+    }
+    *out = a + b;
+    return true;
+}
+
+int main(void) {
+    int a = INT_MAX;
+    int b = 10;
+    int c;
+
+    bool ok = add_ints(a, b, &c);
+    assert(!ok);  // overflow must be detected
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The fix adds precondition checks ensuring the addition stays within the valid int range.
+
+By preventing execution of an overflowing addition, the program avoids undefined behavior and the verification tool can confirm the safety property.

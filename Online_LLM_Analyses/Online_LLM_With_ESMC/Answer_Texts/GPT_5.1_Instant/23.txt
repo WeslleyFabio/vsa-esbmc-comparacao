@@ -1,0 +1,41 @@
+1) Issue Found:
+
+Vulnerability: Use-after-free.
+After calling realloc(p, ...), the pointer p must not be freed, because realloc already moved or reused the allocation and returned the valid pointer in q.
+The line free(p); frees memory that may already be owned by q.
+
+Violated Property: dereference failure: invalidated dynamic object freed (ESBMC reports that the program frees an invalidated dynamic object).
+
+2) Fixed Code:
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 1;
+    p[1] = 2;
+
+    int *q = (int *)realloc(p, 4 * sizeof(int));
+    if (q == NULL) {
+        free(p);
+        return 1;
+    }
+
+    /* Do NOT free(p); q now owns the allocation */
+
+    q[2] = 3;
+    q[3] = 4;
+    assert(q[3] == 4);
+
+    free(q);
+    return 0;
+}
+
+3) Why This Fix Works:
+
+Root cause: After realloc succeeds, the original pointer (p) becomes invalid—either its memory was moved or, if not moved, its ownership is transferred to the returned pointer (q).
+
+How the fix prevents the issue: Removing free(p) avoids freeing memory that q expects to reference. Only the final pointer returned by realloc should be freed. ESBMC no longer detects a use-after-free or invalidated object access.

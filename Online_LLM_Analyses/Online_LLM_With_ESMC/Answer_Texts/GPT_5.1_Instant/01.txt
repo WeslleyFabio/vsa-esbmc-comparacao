@@ -1,0 +1,46 @@
+Issue Found:
+
+Vulnerability: Stack-based buffer overflow in copy_and_sum.
+
+The loop for (size_t i = 0; i <= len; ++i) writes buf[i], but len may be 8 for the string "ABCDEFGH", causing a write to buf[8], which exceeds the valid range 0–7.
+
+Violated Property: array bounds violated (ESBMC reports: (signed long int)i < 8).
+
+Fixed Code:
+
+#include <assert.h>
+#include <string.h>
+
+int copy_and_sum(const char *src) {
+    char buf[8];
+    int sum = 0;
+    size_t len = strlen(src);
+
+    /* Copy only up to buf size - 1, then null-terminate safely */
+    size_t copy_len = (len < sizeof(buf) - 1) ? len : (sizeof(buf) - 1);
+    for (size_t i = 0; i < copy_len; ++i) {
+        buf[i] = src[i];
+    }
+    buf[copy_len] = '\0';
+
+    for (size_t i = 0; i < sizeof(buf); ++i) {
+        sum += (unsigned char)buf[i];
+    }
+    return sum;
+}
+
+int main(void) {
+    const char *s = "ABCDEFGH";
+    int result = copy_and_sum(s);
+    assert(result != 0);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was copying len + 1 bytes (including the null terminator) into an 8-byte buffer, even when the string length was itself 8, guaranteeing an out-of-bounds write.
+
+The fix restricts the copy to at most sizeof(buf) - 1 and explicitly null-terminates, ensuring all writes remain within the 0–7 bounds of buf.
+
+ESBMC no longer sees a path where i can reach 8 during the copy loop, eliminating the reported array-bounds violation.

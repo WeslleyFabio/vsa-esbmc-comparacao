@@ -1,0 +1,40 @@
+Issue Found:
+
+Use-after-free vulnerability: The program dereferences pointer p after it has been freed.
+
+Violated property: dereference failure: invalidated dynamic object — ESBMC correctly reports that p[0] is accessed after the associated dynamic memory has been released.
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 10;
+    p[1] = 20;
+    free(p);
+    p = NULL;        // prevent use-after-free
+
+    // allocate again before use
+    p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 30;
+    assert(p[0] == 30);
+    free(p);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is that the program accesses memory (p[0]) after the block referenced by p has been freed, leaving p as a dangling pointer.
+
+Setting p to NULL prevents accidental reuse, and reallocating memory ensures p[0] refers to a valid allocated object.
+
+With this fix, ESBMC no longer encounters a dereference of an invalidated dynamic object, eliminating the reported violation.

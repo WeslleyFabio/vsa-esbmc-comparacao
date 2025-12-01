@@ -1,0 +1,89 @@
+You are an expert in formal verification using ESBMC.
+
+Analyze the code and its verification report, and provide a concise explanation following exactly this structure:
+
+1) Issue Found:
+- Identify the vulnerability or formal verification failure.
+- Mention the violated property if applicable.
+
+2) Fixed Code:
+- Provide a corrected version of the full C code.
+- Use a \`\`\`c fenced code block.
+- Keep the original logic whenever possible.
+
+3) Why This Fix Works:
+- Brief technical explanation describing the root cause.
+- Show how the fix prevents the issue found by ESBMC.
+
+If ESBMC reports no violations, explicitly state that the program is safe and do not propose any code changes.
+
+--------------------------
+C Source Code:
+\\\`c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 1;
+    p[1] = 2;
+    int *q = (int *)realloc(p, 4 * sizeof(int));
+    if (q == NULL) {
+        free(p);
+        return 1;
+    }
+    free(p);
+    q[2] = 3;
+    q[3] = 4;
+    assert(q[3] == 4);
+    free(q);
+    return 0;
+}
+\\\`
+
+ESBMC Report:
+\`\`\`text
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/23_misuse_realloc.c
+Converting
+Generating GOTO Program
+GOTO program creation time: 0.109s
+GOTO program processing time: 0.002s
+Starting Bounded Model Checking
+Symex completed in: 0.007s (214 assignments)
+Caching time: 0.000s (removed 9 assertions)
+Slicing time: 0.000s (removed 164 assignments)
+Generated 36 VCC(s), 23 remaining after simplification (41 assignments)
+No solver specified; defaulting to Boolector
+Encoding remaining VCC(s) using bit-vector/floating-point arithmetic
+Encoding to solver time: 0.002s
+Solving with solver Boolector 3.2.4
+Runtime decision procedure: 0.066s
+Building error trace
+
+[Counterexample]
+
+
+State 1 file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/23_misuse_realloc.c line 5 column 5 function main thread 0
+----------------------------------------------------
+  p = (signed int *)(&dynamic_2_array[0])
+
+State 11 file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/23_misuse_realloc.c line 11 column 5 function main thread 0
+----------------------------------------------------
+  q = (signed int *)(&realloc_6_array[0])
+
+State 12 file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/23_misuse_realloc.c line 16 column 5 function main thread 0
+----------------------------------------------------
+Violated property:
+  file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/23_misuse_realloc.c line 16 column 5 function main
+  dereference failure: invalidated dynamic object freed
+
+
+VERIFICATION FAILED
+\`\`\`
+
+Respond in English only.

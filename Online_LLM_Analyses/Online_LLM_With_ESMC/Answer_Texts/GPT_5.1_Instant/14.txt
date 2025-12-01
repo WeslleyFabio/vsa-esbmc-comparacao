@@ -1,0 +1,28 @@
+Issue Found:
+
+Uninitialized memory read: The array a is declared but never initialized. ESBMC assigns arbitrary values, causing nondeterministic behavior.
+
+Violated property: The assertion assert(v == 0) fails because v is computed from uninitialized data.
+
+Fixed Code:
+
+#include <assert.h>
+
+int sum_first_three(void) {
+    int a[3] = {0, 0, 0};  // Initialize the array
+    int s = a[0] + a[1] + a[2];
+    return s;
+}
+
+int main(void) {
+    int v = sum_first_three();
+    assert(v == 0);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is that ESBMC models uninitialized variables as nondeterministic, allowing any value. Reading a[0], a[1], and a[2] therefore produces arbitrary integers.
+
+Initializing the array removes nondeterminism, ensuring the sum is always zero, which satisfies the assertion.

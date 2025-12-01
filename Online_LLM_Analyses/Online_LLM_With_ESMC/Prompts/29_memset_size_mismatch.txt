@@ -1,0 +1,79 @@
+You are an expert in formal verification using ESBMC.
+
+Analyze the code and its verification report, and provide a concise explanation following exactly this structure:
+
+1) Issue Found:
+- Identify the vulnerability or formal verification failure.
+- Mention the violated property if applicable.
+
+2) Fixed Code:
+- Provide a corrected version of the full C code.
+- Use a \`\`\`c fenced code block.
+- Keep the original logic whenever possible.
+
+3) Why This Fix Works:
+- Brief technical explanation describing the root cause.
+- Show how the fix prevents the issue found by ESBMC.
+
+If ESBMC reports no violations, explicitly state that the program is safe and do not propose any code changes.
+
+--------------------------
+C Source Code:
+\\\`c
+#include <assert.h>
+#include <string.h>
+
+struct Header {
+    char tag[4];
+    int size;
+};
+
+void reset_header(struct Header *h) {
+    memset(h, 0, sizeof(h->tag));
+}
+
+int main(void) {
+    struct Header h;
+    h.size = 123;
+    reset_header(&h);
+    assert(h.size == 123);
+    return 0;
+}
+\\\`
+
+ESBMC Report:
+\`\`\`text
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/29_memset_size_mismatch.c
+Converting
+Generating GOTO Program
+GOTO program creation time: 0.107s
+GOTO program processing time: 0.000s
+Starting Bounded Model Checking
+Symex completed in: 0.000s (23 assignments)
+Caching time: 0.000s (removed 0 assertions)
+Slicing time: 0.000s (removed 20 assignments)
+Generated 2 VCC(s), 2 remaining after simplification (3 assignments)
+No solver specified; defaulting to Boolector
+Encoding remaining VCC(s) using bit-vector/floating-point arithmetic
+Encoding to solver time: 0.000s
+Solving with solver Boolector 3.2.4
+Runtime decision procedure: 0.009s
+Building error trace
+
+[Counterexample]
+
+
+State 2 file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/29_memset_size_mismatch.c line 17 column 5 function main thread 0
+----------------------------------------------------
+Violated property:
+  file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/29_memset_size_mismatch.c line 17 column 5 function main
+  assertion h.size == 123
+  h.size == 123
+
+
+VERIFICATION FAILED
+\`\`\`
+
+Respond in English only.

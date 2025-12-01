@@ -1,0 +1,32 @@
+Issue Found:
+
+Vulnerability: Division by zero in safe_divide(x, y) when y = 0.
+
+Violated Property: Arithmetic safety — verifier reports possible division-by-zero and the assertion is unreachable/meaningless due to undefined behavior.
+
+Fixed Code:
+
+#include <assert.h>
+
+int safe_divide(int a, int b) {
+    /* Prevent division by zero */
+    if (b == 0) {
+        return 0;   /* Defined safe fallback */
+    }
+    return a / b;
+}
+
+int main(void) {
+    int x = 10;
+    int y = 0;
+    int z = safe_divide(x, y);
+    assert(z == 0);   /* Now guaranteed */
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is that division by zero is undefined behavior.
+
+By checking b == 0 before performing the division, the function guarantees a well-defined return value, restoring the verifier’s ability to reason about the assertion.

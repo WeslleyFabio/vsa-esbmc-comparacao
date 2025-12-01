@@ -1,0 +1,39 @@
+Issue Found:
+
+The call memset(h, 0, sizeof(h->tag)) clears only the first 4 bytes of the Header struct—the region occupied by tag.
+
+Because size is located immediately after tag, part (or all) of the int size field is zeroed, overwriting the value 123.
+
+Violated property: assert(h.size == 123) fails.
+
+Fixed Code:
+
+#include <assert.h>
+#include <string.h>
+
+struct Header {
+    char tag[4];
+    int size;
+};
+
+void reset_header(struct Header *h) {
+    /* Only clear the tag field, not the entire struct */
+    memset(h->tag, 0, sizeof(h->tag));
+}
+
+int main(void) {
+    struct Header h;
+    h.size = 123;
+    reset_header(&h);
+    assert(h.size == 123);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was passing the struct pointer h to memset with a byte count equal to only the tag size. This unintentionally overwrote memory belonging to size.
+
+By calling memset on h->tag instead, the function zeroes exactly the intended array without touching adjacent fields.
+
+ESBMC will now confirm that h.size remains unchanged, satisfying the assertion.

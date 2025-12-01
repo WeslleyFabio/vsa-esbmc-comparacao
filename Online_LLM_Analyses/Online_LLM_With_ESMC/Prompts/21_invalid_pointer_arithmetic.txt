@@ -1,0 +1,80 @@
+You are an expert in formal verification using ESBMC.
+
+Analyze the code and its verification report, and provide a concise explanation following exactly this structure:
+
+1) Issue Found:
+- Identify the vulnerability or formal verification failure.
+- Mention the violated property if applicable.
+
+2) Fixed Code:
+- Provide a corrected version of the full C code.
+- Use a \`\`\`c fenced code block.
+- Keep the original logic whenever possible.
+
+3) Why This Fix Works:
+- Brief technical explanation describing the root cause.
+- Show how the fix prevents the issue found by ESBMC.
+
+If ESBMC reports no violations, explicitly state that the program is safe and do not propose any code changes.
+--------------------------
+C Source Code:
+\\\`c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *base = (int *)malloc(3 * sizeof(int));
+    if (!base) {
+        return 1;
+    }
+    int *p = base + 3;
+    p[0] = 10;
+    assert(p[0] == 10);
+    free(base);
+    return 0;
+}
+\\\`
+
+ESBMC Report:
+\`\`\`text
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/21_invalid_pointer_arithmetic.c
+Converting
+Generating GOTO Program
+GOTO program creation time: 0.108s
+GOTO program processing time: 0.002s
+Starting Bounded Model Checking
+Symex completed in: 0.003s (37 assignments)
+Caching time: 0.000s (removed 6 assertions)
+Slicing time: 0.000s (removed 16 assignments)
+Generated 14 VCC(s), 6 remaining after simplification (15 assignments)
+No solver specified; defaulting to Boolector
+Encoding remaining VCC(s) using bit-vector/floating-point arithmetic
+Encoding to solver time: 0.002s
+Solving with solver Boolector 3.2.4
+Runtime decision procedure: 0.004s
+Building error trace
+
+[Counterexample]
+
+
+State 1 file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/21_invalid_pointer_arithmetic.c line 5 column 5 function main thread 0
+----------------------------------------------------
+  base = (signed int *)(&dynamic_2_array[0])
+
+State 2 file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/21_invalid_pointer_arithmetic.c line 9 column 5 function main thread 0
+----------------------------------------------------
+  p = &dynamic_2_array[0] + 3
+
+State 5 file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/21_invalid_pointer_arithmetic.c line 10 column 5 function main thread 0
+----------------------------------------------------
+Violated property:
+  file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/21_invalid_pointer_arithmetic.c line 10 column 5 function main
+  dereference failure: array bounds violated
+
+
+VERIFICATION FAILED
+\`\`\`
+
+Respond in English only.

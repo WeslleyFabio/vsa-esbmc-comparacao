@@ -3,12 +3,17 @@
 
 int check_password(const char *input) {
     const char *secret = "secret";
-    if (strlen(input) > strlen(secret)) {
+
+    /* Reject if input length differs */
+    if (strlen(input) != strlen(secret)) {
         return 0;
     }
-    if (strncmp(input, secret, strlen(input)) == 0) {
-        return 0;
+
+    /* Accept only if full match */
+    if (strncmp(input, secret, strlen(secret)) == 0) {
+        return 1;
     }
+
     return 0;
 }
 

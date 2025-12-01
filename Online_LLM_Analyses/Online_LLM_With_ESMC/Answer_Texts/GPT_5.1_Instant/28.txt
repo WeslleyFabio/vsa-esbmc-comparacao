@@ -1,0 +1,36 @@
+1) Issue Found:
+
+Vulnerability: Out-of-bounds write in memcpy.
+
+Cause: memcpy(b->data, src, sizeof(*b)) copies sizeof(struct Buffer) (8 bytes for data + 4 bytes for flag = typically 12 bytes) into an array of only 8 bytes, overwriting b->flag.
+
+Violated Property: Dereference failure: array bounds violated (memory safety violation).
+
+2) Fixed Code:
+#include <assert.h>
+#include <string.h>
+
+struct Buffer {
+    char data[8];
+    int flag;
+};
+
+void fill_buffer(struct Buffer *b, const char *src) {
+    memcpy(b->data, src, sizeof(b->data));  // copy only into the data array
+}
+
+int main(void) {
+    struct Buffer b;
+    b.flag = 1;
+    fill_buffer(&b, "ABCDEFGH");
+    assert(b.flag == 1);
+    return 0;
+}
+
+3) Why This Fix Works:
+
+The root cause was using sizeof(*b), which corresponds to the entire struct, not the data field.
+
+This caused memcpy to write past data and corrupt flag, triggering ESBMC's array-bounds violation.
+
+Using sizeof(b->data) restricts copying to the correct buffer size, preventing overflow and ensuring flag remains intact.

@@ -1,0 +1,33 @@
+Issue Found:
+
+Vulnerability: Out-of-bounds array access in count_positive.
+
+Violated Property: dereference failure: array bounds violated — ESBMC reports that the loop uses i <= n, which accesses a[n] even though valid indices are 0 .. n-1.
+
+Fixed Code:
+
+#include <assert.h>
+
+int count_positive(const int *a, int n) {
+    int c = 0;
+    for (int i = 0; i < n; ++i) {  // fix: stop at i < n
+        if (a[i] > 0) {
+            ++c;
+        }
+    }
+    return c;
+}
+
+int main(void) {
+    int v[3] = {1, -1, 2};
+    int c = count_positive(v, 3);
+    assert(c == 2);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+Root cause: The original loop condition i <= n iterated one step too far and accessed memory past the end of the array, triggering ESBMC’s array-bounds violation.
+
+Prevention: Changing the condition to i < n ensures all accesses stay within the valid range 0..n-1, eliminating the out-of-bounds dereference detected by ESBMC.

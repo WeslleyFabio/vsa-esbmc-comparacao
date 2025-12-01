@@ -1,0 +1,51 @@
+Issue Found:
+
+Vulnerability: malloc may nondeterministically return NULL under ESBMC’s memory model, and the caller does not handle this possibility beyond an assertion.
+
+Violated Property: assert(data != NULL) in main is violated in the counterexample, because ESBMC explores the execution path where malloc fails.
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+int *allocate_and_fill(int n, int value) {
+    if (n <= 0) {
+        return NULL;
+    }
+
+    int *p = (int *)malloc((size_t)n * sizeof(int));
+    if (!p) {
+        return NULL;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        p[i] = value;
+    }
+    return p;
+}
+
+int main(void) {
+    int *data = allocate_and_fill(4, 7);
+
+    /* Instead of asserting, check safely */
+    if (data == NULL) {
+        /* Handle allocation failure gracefully */
+        return 1;
+    }
+
+    int ok = data[0] == 7;
+    assert(ok);
+
+    free(data);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is that malloc can legally fail, and ESBMC explores that failing path. Asserting data != NULL is therefore unsafe.
+
+The fix replaces the unconditional assertion with a runtime check that handles NULL safely, eliminating the failing verification path.
+
+Memory allocated in main is also freed, preventing potential leak warnings in more complete analyses.

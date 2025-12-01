@@ -1,0 +1,41 @@
+Issue Found:
+
+Vulnerability: Heap buffer overflow.
+
+Violated Property: dereference failure: array bounds violated during the memcpy call.
+
+Cause: The code allocates n bytes but copies n + 1 bytes (including the null terminator), writing past the allocated buffer.
+
+Fixed Code:
+
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+
+char *duplicate_prefix(const char *src, size_t n) {
+    /* allocate n + 1 bytes to store n chars plus '\0' */
+    char *buf = (char *)malloc(n + 1);
+    if (!buf) {
+        return NULL;
+    }
+    memcpy(buf, src, n);
+    buf[n] = '\0';  /* ensure null-termination */
+    return buf;
+}
+
+int main(void) {
+    const char *s = "hello world";
+    char *p = duplicate_prefix(s, 5);
+    assert(p != NULL);
+    free(p);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was copying one extra byte (the null terminator) into a buffer that was too small.
+
+By allocating n + 1 bytes and copying only n bytes before appending a '\\0', the code ensures all writes stay within bounds.
+
+ESBMC’s memory model now sees no out-of-bounds access, preventing the dereference failure previously detected.

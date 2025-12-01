@@ -1,0 +1,31 @@
+Issue Found:
+
+Out-of-bounds array access in sum_array: the loop runs from i = 0 to i <= n, which accesses a[n]—one past the last valid index (n-1).
+
+Violated property: memory safety / array bounds.
+
+Fixed Code:
+
+#include <assert.h>
+
+int sum_array(const int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n; ++i) {   // fixed bound
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int v[3] = {1, 2, 3};
+    int s = sum_array(v, 3);
+    assert(s == 6);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was an incorrect loop condition (i <= n) that iterated one step too far.
+
+Changing it to i < n ensures accesses remain within the valid range 0 … n-1, eliminating the out-of-bounds violation.

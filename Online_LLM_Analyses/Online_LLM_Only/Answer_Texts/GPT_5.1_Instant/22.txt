@@ -1,0 +1,29 @@
+Issue Found:
+
+Vulnerability: The function store_address() returns the address of a local variable (x). After the function returns, x goes out of scope, so p becomes a dangling pointer.
+
+Violated property: Memory safety / use-after-free (dangling pointer dereference).
+
+Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+
+int *store_address(void) {
+    int *p = malloc(sizeof(int));
+    assert(p != NULL);
+    *p = 5;
+    return p;
+}
+
+int main(void) {
+    int *q = store_address();
+    int v = *q;
+    assert(v == 5);
+    free(q);
+    return 0;
+}
+
+
+Why This Fix Works:
+The original bug occurred because the program returned a pointer to a stack variable whose lifetime ended when the function returned. By allocating the integer on the heap, the pointer remains valid until explicitly freed, eliminating the dangling-pointer dereference.

@@ -1,0 +1,29 @@
+Issue Found:
+
+Logic error in max_of_two: The function incorrectly returns a when a < b, producing the minimum, not the maximum.
+
+Violated property: The assertion m == 5 fails because max_of_two(3, 5) returns 3.
+
+Fixed Code:
+
+#include <assert.h>
+
+int max_of_two(int a, int b) {
+    if (a < b) {
+        return b;  // return the larger value
+    }
+    return a;
+}
+
+int main(void) {
+    int m = max_of_two(3, 5);
+    assert(m == 5);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was an inverted comparison: the function returned the smaller argument when a < b was true.
+
+By returning b in that branch, the function now correctly implements the maximum operation, ensuring the assertion m == 5 holds. ESBMC will no longer find a counterexample.

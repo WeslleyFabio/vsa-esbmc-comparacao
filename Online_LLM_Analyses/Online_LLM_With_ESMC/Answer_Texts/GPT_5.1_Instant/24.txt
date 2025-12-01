@@ -1,0 +1,36 @@
+Issue Found:
+
+The function write_third writes to p->values[2], but the array values has size 2 (values[0] and values[1]).
+
+Violated property: dereference failure: Access to object out of bounds (out-of-bounds write).
+
+Fixed Code:
+
+#include <assert.h>
+
+struct Pair {
+    int values[2];
+};
+
+void write_third(struct Pair *p) {
+    /* Corrected: write within bounds or remove invalid access */
+    /* Here we avoid accessing index 2 since the array has size 2 */
+    /* If the intent was to update the second element, use index 1 */
+    p->values[1] = 10;
+}
+
+int main(void) {
+    struct Pair p;
+    p.values[0] = 1;
+    p.values[1] = 2;
+    write_third(&p);
+    assert(p.values[1] == 10);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was an out-of-bounds array access on values[2], which exceeds the valid indices 0 and 1.
+
+Updating the code to only access valid indices ensures ESBMC no longer detects a memory-safety violation. The fix prevents undefined behavior by respecting the actual array bounds defined in the struct.

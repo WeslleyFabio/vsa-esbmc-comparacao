@@ -1,0 +1,40 @@
+1) Issue Found:
+
+Buffer overflow in the loop copying src into buf: the loop uses i <= len, which writes the null terminator at index len. When len == 8 (as in "ABCDEFGH"), this writes to buf[8], outside the valid range 0–7.
+
+Violated property: memory safety / out-of-bounds write.
+
+2) Fixed Code:
+#include <assert.h>
+#include <string.h>
+
+int copy_and_sum(const char *src) {
+    char buf[8];
+    int sum = 0;
+    size_t len = strlen(src);
+
+    /* Copy at most sizeof(buf) - 1 bytes and always null-terminate */
+    size_t to_copy = (len < sizeof(buf) - 1) ? len : (sizeof(buf) - 1);
+    for (size_t i = 0; i < to_copy; ++i) {
+        buf[i] = src[i];
+    }
+    buf[to_copy] = '\0';
+
+    for (size_t i = 0; i < sizeof(buf); ++i) {
+        sum += (unsigned char)buf[i];
+    }
+    return sum;
+}
+
+int main(void) {
+    const char *s = "ABCDEFGH";
+    int result = copy_and_sum(s);
+    assert(result != 0);
+    return 0;
+}
+
+3) Why This Fix Works:
+
+The root cause was copying len+1 bytes (including the null terminator) into an 8-byte buffer, allowing writes past the end.
+
+The fix limits the copy to the buffer’s capacity minus one and explicitly sets a terminator, ensuring all writes stay within bounds while preserving intended behavior.

@@ -1,0 +1,40 @@
+1) Issue Found:
+
+Vulnerability: Double free.
+After calling free(buf), the pointer buf still holds the old (dangling) address. The later check if (buf != NULL) evaluates to true, causing a second free(buf).
+
+Violated Property (from ESBMC): Dereference failure: invalidated dynamic object — freeing an already freed dynamic object.
+
+2) Fixed Code:
+#include <assert.h>
+#include <stdlib.h>
+
+char *make_buffer(int n) {
+    char *p = (char *)malloc((size_t)n);
+    return p;
+}
+
+int main(void) {
+    char *buf = make_buffer(16);
+    assert(buf != NULL);
+
+    free(buf);
+    buf = NULL;  // prevent double free
+
+    if (buf != NULL) {
+        free(buf);
+    }
+    return 0;
+}
+
+3) Why This Fix Works:
+
+The root cause is that buf remained a dangling pointer after free(). ESBMC correctly reported that the second free() attempts to operate on an invalidated dynamic object.
+
+Setting buf = NULL immediately after the first free() ensures that:
+
+The pointer no longer references freed memory.
+
+The subsequent if (buf != NULL) check prevents a second call to free().
+
+Therefore, the corrected code eliminates the double-free condition and satisfies the verifier’s memory safety properties.

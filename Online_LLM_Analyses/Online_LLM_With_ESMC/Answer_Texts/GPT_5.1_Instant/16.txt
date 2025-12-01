@@ -1,0 +1,33 @@
+Issue Found:
+
+Vulnerability: Out-of-bounds array access in index_of_min.
+
+Violated Property: dereference failure: array bounds violated — the loop condition i <= n causes access to a[n], which is outside the valid range 0 .. n-1.
+
+Fixed Code:
+
+#include <assert.h>
+
+int index_of_min(const int *a, int n) {
+    int idx = 0;
+    for (int i = 1; i < n; ++i) {   // stop at i < n
+        if (a[i] < a[idx]) {
+            idx = i;
+        }
+    }
+    return idx;
+}
+
+int main(void) {
+    int v[3] = {5, 2, 9};
+    int idx = index_of_min(v, 3);
+    assert(idx == 1);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was an incorrect loop bound (i <= n), making the function read one element beyond the end of the array.
+
+Changing the condition to i < n ensures that all accesses remain within valid indices 0..n-1, eliminating the out-of-bounds dereference flagged by ESBMC.

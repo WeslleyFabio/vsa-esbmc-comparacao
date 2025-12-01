@@ -7,7 +7,8 @@ struct Header {
 };
 
 void reset_header(struct Header *h) {
-    memset(h, 0, sizeof(*h));
+    /* Only clear the tag field, not the entire struct */
+    memset(h->tag, 0, sizeof(h->tag));
 }
 
 int main(void) {

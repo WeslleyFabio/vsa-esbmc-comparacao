@@ -1,0 +1,31 @@
+Issue Found:
+
+Vulnerability: Out-of-bounds array read in sum_array.
+
+Violated Property: dereference failure: array bounds violated — loop condition i <= n causes access to a[n], which is outside the valid range when the array size is n.
+
+Fixed Code:
+
+#include <assert.h>
+
+int sum_array(const int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n; ++i) {  // fix: stop at i < n
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int v[3] = {1, 2, 3};
+    int s = sum_array(v, 3);
+    assert(s == 6);
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause was an off-by-one error: i <= n makes the loop read one element past the end of the array.
+
+Changing the condition to i < n ensures the loop iterates only over valid indices 0 through n-1, eliminating the out-of-bounds access and satisfying ESBMC’s array bounds property.

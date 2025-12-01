@@ -1,0 +1,31 @@
+Issue Found:
+
+The function is_even returns 0 when the number is even and 1 otherwise.
+
+In main(), the code calls is_even(4) but asserts r == 1, which is false because 4 is even and the function returns 0.
+
+Violated property: assert(r == 1) fails.
+
+Fixed Code:
+
+#include <assert.h>
+
+int is_even(int x) {
+    if (x % 2 == 0) {
+        return 1;   // return true for even numbers
+    }
+    return 0;       // return false for odd numbers
+}
+
+int main(void) {
+    int r = is_even(4);
+    assert(r == 1); // now consistent with function logic
+    return 0;
+}
+
+
+Why This Fix Works:
+
+The root cause is a semantic mismatch: the function used inverted return values (0 for even, 1 for odd), but the assertion expected 1 for even.
+
+The fix aligns is_even with conventional Boolean semantics (1 = true, 0 = false), ensuring is_even(4) returns 1, making the assertion valid and preventing the ESBMC violation.

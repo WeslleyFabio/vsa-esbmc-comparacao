@@ -1,0 +1,41 @@
+You are an expert in formal verification.
+
+Analyze the code and its verification report, and provide a concise explanation following exactly this structure:
+
+1) Issue Found:
+- Identify the vulnerability or formal verification failure.
+- Mention the violated property if applicable.
+
+2) Fixed Code:
+- Provide a corrected version of the full C code.
+- Use a \\\`c fenced code block.
+- Keep the original logic whenever possible.
+
+3) Why This Fix Works:
+- Brief technical explanation describing the root cause.
+
+--------------------------
+C Source Code:
+\\\`c
+#include <assert.h>
+#include <stdlib.h>
+
+int *allocate_and_fill(int n, int value) {
+    int *p = (int *)malloc((size_t)n * sizeof(int));
+    if (!p) {
+        return NULL;
+    }
+    for (int i = 0; i < n; ++i) {
+        p[i] = value;
+    }
+    return p;
+}
+
+int main(void) {
+    int *data = allocate_and_fill(4, 7);
+    assert(data != NULL);
+    int ok = data[0] == 7;
+    assert(ok);
+    return 0;
+}
+\\\`

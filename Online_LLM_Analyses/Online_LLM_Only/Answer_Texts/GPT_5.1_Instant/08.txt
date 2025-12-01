@@ -1,0 +1,49 @@
+1) Issue Found:
+
+Potential integer-to-size_t conversion vulnerability:
+The parameter n is a signed int. If n is negative or extremely large, the cast to size_t in
+
+malloc((size_t)n * sizeof(int))
+
+
+can cause integer underflow/overflow, resulting in an unintended huge allocation request or a too-small buffer.
+
+Violated property: Memory safety — possible buffer overflow due to mismatched allocated size vs. loop bounds.
+
+2) Fixed Code:
+
+#include <assert.h>
+#include <stdlib.h>
+#include <limits.h>
+
+int *allocate_and_fill(int n, int value) {
+    // Validate n to prevent negative sizes and overflow
+    if (n <= 0 || n > INT_MAX / (int)sizeof(int)) {
+        return NULL;
+    }
+
+    size_t count = (size_t)n;
+    int *p = (int *)malloc(count * sizeof(int));
+    if (!p) {
+        return NULL;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        p[i] = value;
+    }
+    return p;
+}
+
+int main(void) {
+    int *data = allocate_and_fill(4, 7);
+    assert(data != NULL);
+    int ok = data[0] == 7;
+    assert(ok);
+    free(data);
+    return 0;
+}
+
+
+3) Why This Fix Works:
+
+The root cause is the unsafe conversion of a signed integer (n) to size_t, which can wrap or overflow, leading to incorrect memory allocation. By validating n before performing the multiplication, we ensure the computed allocation size is safe and matches the loop bounds, eliminating the risk of under-allocation and subsequent out-of-bounds writes.

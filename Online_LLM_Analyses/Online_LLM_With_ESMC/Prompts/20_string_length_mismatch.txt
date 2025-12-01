@@ -1,0 +1,102 @@
+You are an expert in formal verification using ESBMC.
+
+Analyze the code and its verification report, and provide a concise explanation following exactly this structure:
+
+1) Issue Found:
+- Identify the vulnerability or formal verification failure.
+- Mention the violated property if applicable.
+
+2) Fixed Code:
+- Provide a corrected version of the full C code.
+- Use a \`\`\`c fenced code block.
+- Keep the original logic whenever possible.
+
+3) Why This Fix Works:
+- Brief technical explanation describing the root cause.
+- Show how the fix prevents the issue found by ESBMC.
+
+If ESBMC reports no violations, explicitly state that the program is safe and do not propose any code changes.
+
+--------------------------
+C Source Code:
+\\\`c
+#include <assert.h>
+#include <string.h>
+
+int check_password(const char *input) {
+    const char *secret = "secret";
+    if (strlen(input) > strlen(secret)) {
+        return 0;
+    }
+    if (strncmp(input, secret, strlen(input)) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int main(void) {
+    int r = check_password("secret");
+    assert(r == 1);
+    return 0;
+}
+\\\`
+
+ESBMC Report:
+\`\`\`text
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/20_string_length_mismatch.c
+Converting
+Generating GOTO Program
+GOTO program creation time: 0.098s
+GOTO program processing time: 0.002s
+Starting Bounded Model Checking
+Unwinding loop 6 iteration 1   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 2   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 3   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 4   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 5   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 6   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 1   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 2   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 3   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 4   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 5   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 6   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 1   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 2   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 3   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 4   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 5   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 6 iteration 6   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 92 column 3 function strlen
+Unwinding loop 8 iteration 1   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 134 column 12 function strncmp
+Unwinding loop 8 iteration 2   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 134 column 12 function strncmp
+Unwinding loop 8 iteration 3   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 134 column 12 function strncmp
+Unwinding loop 8 iteration 4   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 134 column 12 function strncmp
+Unwinding loop 8 iteration 5   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 134 column 12 function strncmp
+Symex completed in: 0.007s (69 assignments)
+Caching time: 0.000s (removed 0 assertions)
+Slicing time: 0.000s (removed 67 assignments)
+Generated 67 VCC(s), 1 remaining after simplification (2 assignments)
+No solver specified; defaulting to Boolector
+Encoding remaining VCC(s) using bit-vector/floating-point arithmetic
+Encoding to solver time: 0.000s
+Solving with solver Boolector 3.2.4
+Runtime decision procedure: 0.000s
+Building error trace
+
+[Counterexample]
+
+
+State 1 file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/20_string_length_mismatch.c line 17 column 5 function main thread 0
+----------------------------------------------------
+Violated property:
+  file /home/rafaelfacioni/vsa-esbmc-comparacao/Banco_de_Dados/20_string_length_mismatch.c line 17 column 5 function main
+  assertion r == 1
+  r == 1
+
+
+VERIFICATION FAILED
+\`\`\`
+
+Respond in English only.
