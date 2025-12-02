@@ -1,0 +1,10 @@
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/llama3.1:8b_2/22_dangling_pointer_stack.c
+/home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/llama3.1:8b_2/22_dangling_pointer_stack.c:11:13: warning: ISO C does not allow indirection on operand of type 'void *' [-Wvoid-ptr-dereference]
+   11 |     int v = *memcpy((void*)&v, q, sizeof(int)); // use memcpy to dereference safely
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/llama3.1:8b_2/22_dangling_pointer_stack.c:11:9: error: initializing 'int' with an expression of incompatible type 'void'
+   11 |     int v = *memcpy((void*)&v, q, sizeof(int)); // use memcpy to dereference safely
+      |         ^   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ERROR: PARSING ERROR

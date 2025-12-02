@@ -1,0 +1,23 @@
+1) Issue Found:
+- The code has a vulnerability related to an out-of-bounds access in the `index_of_min` function.
+- The violated property is "dereference failure: array bounds violated".
+
+2) Fixed Code:
+```c
+int index_of_min(const int *a, int n) {
+    if (n < 1) return -1; // or any other invalid index value
+    int idx = 0;
+    for (int i = 1; i <= n; ++i) {
+        if (i >= a && a[i] < a[idx]) { // changed condition to check array bounds
+            idx = i;
+        }
+    }
+    return idx == -1 ? -1 : idx; // handle invalid index case
+}
+```
+
+3) Why This Fix Works:
+- The root cause of the issue is that the code does not properly check if `i` is within the bounds of the array `a` before accessing `a[i]`.
+- By changing the condition in the `if` statement to `i >= a`, we ensure that we do not access an out-of-bounds index. If `i` is less than the length of the array, it will be compared with other elements.
+- Additionally, we handle the case where `n < 1` by returning an invalid index value (-1) and checking for this condition at the end to avoid returning an invalid index.
+

@@ -1,0 +1,52 @@
+Here is the analysis of the code and the ESBMC verification report.
+
+### 1\) Issue Found
+
+  * **Vulnerability:** Use-After-Free (UAF).
+  * **Violated Property:** `dereference failure: invalidated dynamic object`
+  * **Explanation:** The program calls `free(data)` on line 20, which invalidates the memory pointed to by `data`. However, on line 21, `data` is passed to the function `sum_array`. Inside `sum_array` (line 7), the code attempts to dereference this now-invalid pointer (`a[i]`), leading to undefined behavior and a verification failure.
+
+-----
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int sum_array(int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n; ++i) {
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int *data = (int *)malloc(3 * sizeof(int));
+    if (!data) {
+        return 1;
+    }
+    data[0] = 1;
+    data[1] = 2;
+    data[2] = 3;
+
+    // Fix: Calculate the sum BEFORE freeing the memory
+    int result = sum_array(data, 3);
+    
+    // Fix: Free the memory only after we are done using the data
+    free(data);
+    
+    assert(result == 6);
+    return 0;
+}
+```
+
+-----
+
+### 3\) Why This Fix Works
+
+  * **Root Cause:** The original code prematurely deallocated the memory block holding the array elements before the computation was complete. Accessing memory after it has been freed is a violation of memory safety rules.
+  * **Resolution:** The fix reorders the operations to ensure the lifecycle of the allocated object covers all its uses. By moving `free(data)` after the call to `sum_array`, the pointer `data` remains valid during the loop execution inside `sum_array`, preventing the "invalidated dynamic object" error.
+
+Would you like me to explain how to detect other memory safety issues, such as double-free or memory leaks, using ESBMC?

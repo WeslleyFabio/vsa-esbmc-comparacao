@@ -1,0 +1,38 @@
+Here is the analysis of the code and verification report.
+
+### 1\) Issue Found
+
+  * **Assertion Failure:** The verification failed on the property `assert(c > a)`.
+  * **Root Cause:** The code suffers from **Signed Integer Overflow**. The variable `a` is initialized to `INT_MAX` (typically $2,147,483,647$). When adding `b = 10`, the result exceeds the maximum value a 32-bit signed integer can hold. This causes the value to wrap around to a negative number (or results in undefined behavior), making the result `c` smaller than `a`, thus violating the assertion.
+
+### 2\) Fixed Code
+
+To fix this while maintaining the requirement that the result `c` must be greater than `a` (as enforced by the assertion), we must use a data type capable of holding the larger value, such as `long long`.
+
+```c
+#include <assert.h>
+#include <limits.h>
+
+// Change return type to long long to prevent overflow
+long long add_ints(int a, int b) {
+    // Cast 'a' to long long before addition to ensure 64-bit arithmetic
+    long long c = (long long)a + b;
+    return c;
+}
+
+int main(void) {
+    int a = INT_MAX;
+    int b = 10;
+    // Store result in long long
+    long long c = add_ints(a, b);
+    assert(c > a);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+  * **Prevents Overflow:**  By promoting the arithmetic to `long long` (which is typically 64-bit on x86\_64 systems), the variable `c` can safely store the value `INT_MAX + 10` without wrapping around.
+  * **Satisfies Assertion:** Since the mathematical value is preserved correctly (e.g., $2,147,483,657$), the condition `c > a` evaluates to true, preventing the assertion failure found by ESBMC.
+
+Would you like me to show you how to detect this overflow using ESBMC's `--overflow-check` flag instead of relying on the assertion?

@@ -1,0 +1,31 @@
+Here's the analysis:
+
+**1) Issue Found:**
+- The vulnerability is an out-of-bounds read access to the array `a`.
+- The property that was violated is a dereference failure due to array bounds being exceeded.
+
+**2) Fixed Code:**
+```c
+#include <assert.h>
+
+int sum_array(const int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n; ++i) { // changed <= to <
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int v[3] = {1, 2, 3};
+    int s = sum_array(v, 3);
+    assert(s == 6);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+- The root cause of the issue is that the loop in `sum_array` iterates one extra time when accessing array `a`, beyond its declared size. This happens because the condition in the for loop was `i <= n`.
+- By changing the condition to `i < n`, we ensure that the last iteration only accesses the array up to its valid index, preventing the out-of-bounds read.
+- The corrected code prevents the error found by ESBMC by ensuring that the array access is bounded within the declared size.
+

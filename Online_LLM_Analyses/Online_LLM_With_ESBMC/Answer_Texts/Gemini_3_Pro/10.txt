@@ -1,0 +1,37 @@
+### 1\) Issue Found:
+
+**Assertion Failure caused by Integer Overflow.**
+The verification report indicates a failure in the assertion `c >= a`. The root cause is a signed integer overflow in the `multiply` function. The operation `INT_MAX * 2` exceeds the maximum value a standard `int` can hold ($2,147,483,647$). This causes undefined behavior (typically wrapping around to a negative value like $-2$), which leads to `c` being smaller than `a`, triggering the assertion violation.
+
+### 2\) Fixed Code:
+
+```c
+#include <assert.h>
+#include <limits.h>
+
+// Use long long to hold the larger result
+long long multiply(int a, int b) {
+    long long c = (long long)a * b;
+    return c;
+}
+
+int main(void) {
+    int a = INT_MAX;
+    int b = 2;
+    // Update variable type to store the larger result
+    long long c = multiply(a, b);
+    
+    // Check implies correct mathematical result, not overflowed value
+    assert(c >= a);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works:
+
+  * **Widens the Data Type:** The standard `int` type cannot represent the result of `INT_MAX * 2`. By casting `a` to `long long` before the multiplication and storing the result in a `long long`, the program allocates enough bits (typically 64 bits) to correctly represent the resulting value ($4,294,967,294$).
+  * **Satisfies Assertion:** With the correct value stored in `c`, the comparison `c >= a` becomes true ($4,294,967,294 \ge 2,147,483,647$), preventing the assertion failure and the underlying overflow.
+
+-----
+
+Would you like me to explain how to enable specific overflow checks in ESBMC command-line arguments?

@@ -1,0 +1,42 @@
+### 1\) Issue Found:
+
+**Use-After-Free Vulnerability**
+The ESBMC report indicates a `dereference failure: invalidated dynamic object` on line 12.
+
+  * The code calls `free(p)` on line 11, which invalidates the memory block pointed to by `p`.
+  * On line 12, the code attempts to dereference this pointer (`p[0] = 30;`).
+  * This constitutes undefined behavior, as the program is trying to access memory that has been returned to the system.
+
+### 2\) Fixed Code:
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 10;
+    p[1] = 20;
+    
+    // Correct logic: Perform all operations before freeing the memory
+    p[0] = 30;
+    assert(p[0] == 30);
+    
+    // Release memory only when it is no longer needed
+    free(p);
+    
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works:
+
+  * **Root Cause:** The original code created a "dangling pointer" by freeing the memory block at `p` while the program still intended to write to and read from it.
+  * **The Fix:** By moving the `free(p)` call to the end of the `main` function (after the assignment and assertion), we ensure that the memory block remains allocated and valid for the entire duration of its usage. This satisfies the ESBMC property check for valid dynamic objects during dereference.
+
+-----
+
+**Would you like me to run a check for potential memory leaks or double-free errors on this fixed version?**

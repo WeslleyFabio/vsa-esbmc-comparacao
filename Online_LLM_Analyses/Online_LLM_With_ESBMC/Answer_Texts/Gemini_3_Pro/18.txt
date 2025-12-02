@@ -1,0 +1,28 @@
+### 1\) Issue Found
+
+**Logic Error / Assertion Failure**: The `absolute_value` function fails to calculate the absolute value correctly for negative numbers. Specifically, inside the `if (x < 0)` block, the function returns the original negative value `x` instead of negating it. This causes the assertion `assert(v == 5)` in `main` to fail because `v` evaluates to `-5` instead of `5`.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int absolute_value(int x) {
+    if (x < 0) {
+        return -x; // Fixed: Negate x to get the positive value
+    }
+    return x;
+}
+
+int main(void) {
+    int v = absolute_value(-5);
+    assert(v == 5);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+The root cause of the verification failure was that the function returned negative inputs unchanged. By changing the return statement to `return -x;` when `x < 0`, we mathematically invert the sign of the negative number (e.g., `-(-5)` becomes `5`). This ensures the function returns the non-negative magnitude of the input, satisfying the condition `v == 5` required by the `assert` statement.
+
+**Would you like me to explain how to detect integer overflows in absolute value functions using ESBMC (specifically for `INT_MIN`)?**

@@ -1,0 +1,24 @@
+ 1) Issue Found:
+The program has a division-by-zero vulnerability. The function `safe_divide` does not handle the case where the denominator is zero, causing undefined behavior when it encounters this scenario. Specifically, the violated property is `b != 0`.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+
+int safe_divide(int a, int b) {
+    if (b == 0) return 0;
+    else return a / b;
+}
+
+int main(void) {
+    int x = 10;
+    int y = 0;
+    int z = safe_divide(x, y);
+    assert(z == 0);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The root cause of the issue is that the function `safe_divide` does not handle division by zero. To prevent this vulnerability, we add a check for dividing by zero within the function and return 0 in such cases. The modified `safe_divide` function now has proper handling of the division-by-zero scenario, ensuring it always returns a valid result.
+

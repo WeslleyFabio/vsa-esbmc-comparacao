@@ -1,0 +1,38 @@
+Based on the provided C code and the ESBMC verification report, here is the analysis and the corrected code.
+
+### 1\) Issue Found
+
+The verification failed due to the **use of uninitialized memory**, which subsequently caused an **assertion violation**.
+
+  * **Vulnerability:** The array `int a[3]` is declared inside `sum_first_three` but is never initialized. In C, local variables have indeterminate (garbage) values if not explicitly initialized.
+  * **Violated Property:** `assertion v == 0`. ESBMC's counterexample shows that the uninitialized array contained arbitrary values (e.g., `2147483646`, `-2`, etc.), resulting in a sum that did not equal `0`.
+
+### 2\) Fixed Code
+
+To ensure the program behaves deterministically and satisfies the assertion, the array must be initialized.
+
+```c
+#include <assert.h>
+
+int sum_first_three(void) {
+    // Initialize the array elements to 0
+    int a[3] = {0, 0, 0}; 
+    int s = a[0] + a[1] + a[2];
+    return s;
+}
+
+int main(void) {
+    int v = sum_first_three();
+    assert(v == 0);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+  * **Root Cause:** The original code read from memory locations allocated for `a[0]`, `a[1]`, and `a[2]` without writing to them first. This meant the variable `s` was the sum of unpredictable "garbage" data found at those memory addresses.
+  * **Verification Success:** By explicitly initializing the array with `int a[3] = {0, 0, 0};`, we guarantee that every element is `0`. Consequently, the sum `s` is deterministically calculated as `0 + 0 + 0 = 0`. This ensures the return value `v` is `0`, satisfying the `assert(v == 0)` check and preventing the verification failure.
+
+-----
+
+Would you like me to explain how to use ESBMC command-line flags to automatically detect uninitialized local variables without relying on specific assertions?

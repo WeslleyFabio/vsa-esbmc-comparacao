@@ -1,0 +1,40 @@
+ 1) Issue Found:
+The code has a vulnerability known as null pointer dereference after free, which occurs when `data` is freed and then accessed again within the `sum_array()` function. This violation of the C standard causes undefined behavior. The violated property here is the assertion that the sum of array elements equals 6, which fails due to the null pointer dereference.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int sum_array(int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n; ++i) {
+        if (a[i]) { // check if the pointer is not null before dereferencing
+            s += a[i];
+        }
+    }
+    return s;
+}
+
+int main(void) {
+    int *data = (int *)malloc(3 * sizeof(int));
+    if (!data) {
+        return 1;
+    }
+    data[0] = 1;
+    data[1] = 2;
+    data[2] = 3;
+    free(data); // move this line before the assert statement
+    int result = sum_array(data, 3);
+    if (result != 6) {
+        printf("The sum of array elements is not 6. Got %d\n", result);
+    }
+    assert(result == 6); // move this line after the free() to prevent undefined behavior
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The fix works by adding a check before dereferencing `a[i]` inside the `sum_array()` function to ensure that it is not a null pointer. Also, in the main function, moving the free() statement before the assert() statement prevents the access of freed memory. This way, the code avoids the null pointer dereference after free issue and maintains the original logic while ensuring safety.
+

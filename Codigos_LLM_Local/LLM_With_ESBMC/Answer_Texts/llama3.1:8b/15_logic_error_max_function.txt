@@ -1,0 +1,26 @@
+**1) Issue Found:**
+The issue found is a logic error in the `max_of_two` function, which incorrectly returns the smaller value instead of the larger one when both inputs are equal.
+
+**2) Fixed Code:**
+```c
+#include <assert.h>
+
+int max_of_two(int a, int b) {
+    if (a > b) {  // Fix: changed 'if (a < b)' to 'if (a > b)'
+        return a;
+    }
+    return b;
+}
+
+int main(void) {
+    int m = max_of_two(3, 5);
+    assert(m == 5);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+The fix changes the condition in the `if` statement from `<` to `>`, which is the correct operator for comparing two values and returning the larger one. With this correction, when both inputs are equal (as in the case where we call `max_of_two(3, 5)`), the function will return the first input (`a`), which is indeed the maximum value.
+
+The original code's logic error was that it would incorrectly return the smaller value when both inputs were equal. By changing the condition to check for greater than instead of less than, we ensure that the correct maximum value is returned in all cases.
+

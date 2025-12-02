@@ -1,0 +1,43 @@
+Based on the analysis of the C code and the ESBMC verification report, here is the explanation of the failure and the solution.
+
+### 1\) Issue Found
+
+  * **Vulnerability:** Out-of-bounds read (Buffer Over-read).
+  * **Violated Property:** `dereference failure: array bounds violated`.
+  * **Analysis:** The function `sum_array` is called with `n = 3` for an array `v` of size 3. The loop condition `i <= n` causes the loop to execute for indices 0, 1, 2, and **3**. In C, arrays are zero-indexed, so `v[3]` accesses memory outside the allocated array boundaries, triggering the verification failure.
+
+-----
+
+### 2\) Fixed Code
+
+The fix involves correcting the loop condition to ensure it iterates only through valid indices (0 to `n-1`).
+
+```c
+#include <assert.h>
+
+int sum_array(const int *a, int n) {
+    int s = 0;
+    // FIX: Change loop condition from 'i <= n' to 'i < n'
+    for (int i = 0; i < n; ++i) {
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int v[3] = {1, 2, 3};
+    int s = sum_array(v, 3);
+    assert(s == 6);
+    return 0;
+}
+```
+
+-----
+
+### 3\) Why This Fix Works
+
+  * **Root Cause:** The original code contained an **off-by-one error** in the `for` loop condition (`<=` instead of `<`).
+  * **Technical Fix:** Arrays of size $N$ in C have valid indices from $0$ to $N-1$. By changing the condition to `i < n`, the loop stops exactly when `i` equals `n` (in this case, 3).
+  * **Result:** This prevents the program from attempting to access `a[3]`, ensuring all memory accesses remain within the valid bounds of the array `v`. ESBMC will now verify the `array bounds` property successfully.
+
+Would you like me to explain how to configure ESBMC to check for other memory safety properties like memory leaks?

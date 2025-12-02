@@ -1,0 +1,28 @@
+**1) Issue Found:**
+- **Vulnerability:** Array index out-of-bounds access.
+- **Violated Property:** The program violates the property that arrays are accessed within their valid indices.
+
+**2) Fixed Code:**
+```c
+#include <assert.h>
+
+int get_value(int *a, int n, int index) {
+    if (0 <= index && index < n) {  // Fix: Changed to 0 <= index && index < n
+        return a[index];
+    }
+    return -1;  // Return an invalid value instead of 0
+}
+
+int main(void) {
+    int v[4] = {1, 2, 3, 4};
+    int x = get_value(v, 4, 5);  // Test the fixed function
+    assert(x == -1);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+The original code had a condition `index >= 0 && index <= n`, which allowed `index` to be equal to `n`. However, in C, array indices go from `0` to `n-1`. The fix changes the condition to `0 <= index && index < n`, ensuring that `index` is within the valid range for the array. Additionally, instead of returning `0` when the index is out-of-bounds, we return `-1` to make it clear that the access was invalid.
+
+Note: If ESBMC reports no violations, I would respond with "The program is safe and does not need any code changes."
+

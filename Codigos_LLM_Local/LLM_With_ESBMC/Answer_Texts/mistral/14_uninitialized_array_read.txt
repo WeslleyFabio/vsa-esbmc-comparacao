@@ -1,0 +1,23 @@
+ 1) Issue Found:
+The code has a vulnerability called "Use of Uninitialized Variable". The variable `a` is not initialized before being used in the function `sum_first_three`. This leads to undefined behavior, and the values assigned to the array elements are not predictable, causing the assertion failure. The violated property is `v == 0` which should hold true for correctly implemented code but fails due to the uninitialized variable.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+
+int sum_first_three(void) {
+    int a[3] = {0, 0, 0}; // Initialize the array with zeros.
+    int s = a[0] + a[1] + a[2];
+    return s;
+}
+
+int main(void) {
+    int v = sum_first_three();
+    assert(v == 0);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+By initializing the array `a` with zeros, we ensure that its elements have predictable values. The unpredictable behavior caused by uninitialized variables is eliminated, and the assertion holds true, making the program safe.
+

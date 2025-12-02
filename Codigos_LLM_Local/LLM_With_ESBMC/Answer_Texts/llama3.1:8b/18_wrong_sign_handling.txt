@@ -1,0 +1,27 @@
+**1) Issue Found:**
+
+- The vulnerability is related to the incorrect handling of signed integers, causing a potential underflow when calculating `absolute_value(-5)`.
+- The violated property is the assertion `v == 5` in the `main` function.
+
+**2) Fixed Code:**
+```c
+#include <assert.h>
+
+int absolute_value(int x) {
+    if (x < 0) {
+        return -x; // Fix: Negate x instead of returning it as is
+    }
+    return x;
+}
+
+int main(void) {
+    int v = absolute_value(-5);
+    assert(v == 5);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+
+The original code returned `x` when it was negative, which resulted in a negative value being assigned to `v`. To fix this, we negate the value of `x` when it's negative by changing the line `return x;` to `return -x;`. This ensures that the absolute value of a negative number is correctly calculated. The corrected code will now pass the assertion `v == 5`, confirming that the absolute value of `-5` is indeed `5`.
+

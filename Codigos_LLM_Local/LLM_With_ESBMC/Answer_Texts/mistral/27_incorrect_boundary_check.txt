@@ -1,0 +1,15 @@
+ 1) Issue Found:
+The code contains a logic error that leads to a violation of the assertion `r2 == 1`. The function `is_index_valid` incorrectly returns `1` for an index equal or greater than the size, allowing `r2` to be assigned a value of `1` when it should be `0`.
+
+2) Fixed Code:
+```c
+int is_index_valid(int index, int size) {
+    if (index >= 0 && index <= size - 1) {
+        return 1;
+    }
+    return 0;
+}
+```
+3) Why This Fix Works:
+The fix addresses the root cause by ensuring that the checked index is within the valid range of `[0, size-1]`. The condition `index <= size - 1` ensures that the index does not exceed the array's bounds. By updating the function to use the correct index range, the assertion violation no longer occurs, and the program is safe.
+

@@ -1,0 +1,36 @@
+### 1\) Issue Found
+
+  * **Vulnerability:** Assertion failure (`VERIFICATION FAILED`).
+  * **Violated Property:** `y < x`.
+  * **Analysis:** The variable `x` is initialized to `0u`. The function `decrement(0u)` performs `0u - 1u`. In unsigned arithmetic, this results in an **integer underflow**, causing the value to wrap around to `UINT_MAX` (the maximum possible unsigned integer). Consequently, `y` (now `UINT_MAX`) is strictly greater than `x` (0), causing the assertion `y < x` to fail.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <limits.h>
+
+unsigned int decrement(unsigned int x) {
+    return x - 1u;
+}
+
+int main(void) {
+    unsigned int x = 0u;
+    
+    // Only perform the operation and assertion if x is strictly positive
+    // to avoid unsigned underflow wrapping.
+    if (x > 0u) {
+        unsigned int y = decrement(x);
+        assert(y < x);
+    }
+    
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+  * **Root Cause:** The original code forced a decrement on an unsigned zero (`0u`), which causes a wrap-around to the maximum integer value. This inherent behavior of unsigned arithmetic contradicts the assertion that the result (`y`) must be smaller than the original (`x`).
+  * **Mechanism:** The fix adds a precondition check (`if (x > 0u)`). This ensures the `decrement` function is never called when `x` is zero, preventing the underflow. This logic preserves the intent of the assertion (checking that decrementing reduces the value) while safely skipping the case where that property is mathematically impossible for unsigned types without wrapping.
+
+Would you like me to explain how to detect this using ESBMC's specific overflow flags?

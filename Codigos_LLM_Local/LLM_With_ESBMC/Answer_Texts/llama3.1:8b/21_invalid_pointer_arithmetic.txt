@@ -1,0 +1,32 @@
+**1) Issue Found:**
+
+* The code has a pointer arithmetic error, specifically an out-of-bounds access on the dynamically allocated array `base`.
+* The property that is being violated is "dereference failure: array bounds violated".
+
+The issue arises from the fact that the array `base` has a size of 3 * sizeof(int) = 12 bytes, but the pointer `p` points to an index beyond the bounds of this allocation.
+
+**2) Fixed Code:**
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *base = (int *)malloc(3 * sizeof(int));
+    if (!base) {
+        return 1;
+    }
+    int *p = base + 1; // corrected pointer arithmetic
+    p[0] = 10;
+    assert(p[0] == 10);
+    free(base);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+
+The fix involves correcting the pointer arithmetic in the line `int *p = base + 3;` to simply `int *p = base + 1;`. This change ensures that the pointer `p` points within the bounds of the allocation, preventing the out-of-bounds access.
+
+By incrementing `base` by only 1 instead of 3, we ensure that `p` is pointing to a valid index within the allocated memory. The rest of the code remains unchanged, maintaining its original logic while avoiding the dereference failure that ESBMC detected.
+

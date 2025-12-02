@@ -1,0 +1,19 @@
+#include <assert.h>
+#include <string.h>
+
+struct Buffer {
+    char data[8];
+    int flag;
+};
+
+void fill_buffer(struct Buffer *b, const char *src) {
+    memcpy(b->data, src, sizeof(b->data));
+}
+
+int main(void) {
+    struct Buffer b = {0}; // Initialize the entire buffer with zeros.
+    b.flag = 1;
+    fill_buffer(&b, "ABCDEFGH");
+    assert(b.flag == 1);
+    return 0;
+}

@@ -1,0 +1,51 @@
+Here is the analysis and correction of the code based on the ESBMC report.
+
+### 1\) Issue Found:
+
+  * **Double Free / Invalid Free:** The verification failed due to a **double free** error (reported as `dereference failure: invalidated dynamic object freed`).
+  * **Root Cause:** The code explicitly calls `free(p)` after `realloc(p, ...)` has successfully returned. According to the C standard, if `realloc` succeeds, it automatically frees the memory pointed to by `p` (or reuses it). Consequently, `p` becomes indeterminate. Attempting to `free(p)` again results in undefined behavior.
+
+### 2\) Fixed Code:
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 1;
+    p[1] = 2;
+
+    // realloc acts on p. If successful, it frees p automatically.
+    int *q = (int *)realloc(p, 4 * sizeof(int));
+    
+    if (q == NULL) {
+        // If realloc fails, the original p is still valid and must be freed manually.
+        free(p); 
+        return 1;
+    }
+
+    // REMOVED: free(p); 
+    // Reason: realloc already freed 'p' when it returned 'q'. 
+    
+    q[2] = 3;
+    q[3] = 4;
+    assert(q[3] == 4);
+    
+    free(q); // Free the new pointer
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works:
+
+  * **Standard Compliance:** The `realloc` function has ownership transfer semantics. When it successfully resizes memory, it invalidates the old pointer (`p`) and returns a new pointer (`q`). The system automatically reclaims the memory associated with `p`.
+  * **Prevention of Double Free:** By removing the explicit `free(p)` after the successful `realloc`, we ensure the memory is not deallocated twice.
+  * **Correct Ownership:** The fix relies on `q` to manage the memory lifecycle after the resizing operation, which satisfies ESBMC's memory safety checks.
+
+-----
+
+**Would you like me to explain how ESBMC models memory states during `realloc` operations?**

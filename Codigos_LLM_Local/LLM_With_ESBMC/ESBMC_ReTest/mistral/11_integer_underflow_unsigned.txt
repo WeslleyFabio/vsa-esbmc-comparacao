@@ -1,0 +1,32 @@
+esbmc /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/mistral/11_integer_underflow_unsigned.c --include /home/argos40/esbmc-linux/bin/esbmc --nan-check --memory-leak-check --overflow-check --struct-fields-check
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/mistral/11_integer_underflow_unsigned.c
+Converting
+Generating GOTO Program
+GOTO program creation time: 0.081s
+GOTO program processing time: 0.000s
+Starting Bounded Model Checking
+Symex completed in: 0.000s (16 assignments)
+Caching time: 0.000s (removed 0 assertions)
+Slicing time: 0.000s (removed 15 assignments)
+Generated 1 VCC(s), 1 remaining after simplification (1 assignments)
+No solver specified; defaulting to Boolector
+Encoding remaining VCC(s) using bit-vector/floating-point arithmetic
+Encoding to solver time: 0.000s
+Solving with solver Boolector 3.2.4
+Runtime decision procedure: 0.002s
+Building error trace
+
+[Counterexample]
+
+
+State 1 file /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/mistral/11_integer_underflow_unsigned.c line 13 column 5 function main thread 0
+----------------------------------------------------
+Violated property:
+  file /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/mistral/11_integer_underflow_unsigned.c line 13 column 5 function main
+  assertion y < x
+  y < x
+
+
+VERIFICATION FAILED

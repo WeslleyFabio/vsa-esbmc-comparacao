@@ -1,0 +1,40 @@
+### 1\) Issue Found
+
+  * **Vulnerability:** Array Out-of-Bounds Access (Buffer Overflow).
+  * **Violated Property:** `dereference failure: array bounds violated`.
+  * **Analysis:** The function `count_positive` receives the array size `n` (which is 3 in `main`). The loop condition `i <= n` allows `i` to reach `3`. Since C arrays are zero-indexed (`0` to `n-1`), accessing `a[3]` attempts to read memory outside the allocated space of the array `v`, triggering the verification failure.
+
+-----
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int count_positive(const int *a, int n) {
+    int c = 0;
+    // Fix: Changed loop condition from 'i <= n' to 'i < n'
+    for (int i = 0; i < n; ++i) {
+        if (a[i] > 0) {
+            ++c;
+        }
+    }
+    return c;
+}
+
+int main(void) {
+    int v[3] = {1, -1, 2};
+    int c = count_positive(v, 3);
+    assert(c == 2);
+    return 0;
+}
+```
+
+-----
+
+### 3\) Why This Fix Works
+
+  * **Zero-Index Compliance:** In C, an array of size $N$ has valid indices ranging from $0$ to $N-1$. The original code tried to access index $N$.
+  * **Bounds Safety:** Changing the loop condition from `i <= n` to `i < n` ensures the loop terminates after processing the last valid element (index 2). This prevents the pointer from dereferencing memory address `v + 3`, effectively resolving the `array bounds violated` error reported by ESBMC.
+
+Would you like me to explain how to configure ESBMC to check for signed integer overflows in this loop as well?

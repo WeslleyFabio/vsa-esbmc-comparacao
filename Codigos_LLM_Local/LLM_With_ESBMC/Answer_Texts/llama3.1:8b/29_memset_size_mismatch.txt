@@ -1,0 +1,32 @@
+1) Issue Found:
+- The issue found is a violation of the property `h.size == 123` after calling the `reset_header` function.
+- The violated property indicates that the assertion fails, and ESBMC reports a counterexample.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <string.h>
+
+struct Header {
+    char tag[4];
+    int size;
+};
+
+void reset_header(struct Header *h) {
+    memset(h->tag, 0, sizeof(h->tag));
+    h->size = 0; // Reset the size to 0 explicitly.
+}
+
+int main(void) {
+    struct Header h;
+    h.size = 123;
+    reset_header(&h);
+    assert(h.size == 123);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The root cause of this issue is that `memset` only resets the memory in the specified range, but does not modify the value stored at the location pointed to by `h`. In this case, `memset` only clears the first four bytes of the struct (the `tag` field), leaving the value of `h.size` unchanged. 
+By explicitly resetting `h->size` to 0 in the `reset_header` function, we ensure that the property `h.size == 123` is preserved after calling this function.
+

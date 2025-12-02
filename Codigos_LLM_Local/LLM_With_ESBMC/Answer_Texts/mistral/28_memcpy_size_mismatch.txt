@@ -1,0 +1,28 @@
+ 1) Issue Found:
+The code contains a buffer overflow vulnerability due to the size mismatch between the source string and the destination buffer when using `memcpy`. Specifically, the `memset(b->data, 0, sizeof(*b))` before `fill_buffer(&b, "ABCDEFGH")` in the main function does not correctly initialize the entire buffer with zeros, leaving some bytes uninitialized. As a result, the call to `memcpy(b->data, src, sizeof(*b))` copies more data than intended into the buffer, causing the dereference failure (buffer overflow) identified by ESBMC.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <string.h>
+
+struct Buffer {
+    char data[8];
+    int flag;
+};
+
+void fill_buffer(struct Buffer *b, const char *src) {
+    memcpy(b->data, src, sizeof(b->data));
+}
+
+int main(void) {
+    struct Buffer b = {0}; // Initialize the entire buffer with zeros.
+    b.flag = 1;
+    fill_buffer(&b, "ABCDEFGH");
+    assert(b.flag == 1);
+    return 0;
+}
+```
+3) Why This Fix Works:
+The fix initializes the entire buffer with zeros using `b = {0};`, ensuring that all bytes in the destination buffer are properly initialized before the call to `memcpy`. This eliminates the possibility of a buffer overflow since `sizeof(b->data)` now corresponds to the correct number of bytes to be copied, avoiding the size mismatch issue. The corrected code also ensures that the assertion at the end of the main function will pass because the flag value remains unchanged during the execution of the `fill_buffer` function.
+

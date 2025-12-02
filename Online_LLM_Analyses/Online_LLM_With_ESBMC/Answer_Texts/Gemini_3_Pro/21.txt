@@ -1,0 +1,42 @@
+### 1\) Issue Found:
+
+**Buffer Overflow (Array Bounds Violation)**
+The ESBMC report indicates a `dereference failure: array bounds violated` at line 10.
+
+  * **Cause:** The program allocates memory for 3 integers (indices 0, 1, and 2).
+  * **Violation:** The pointer `p` is initialized to `base + 3`, which points to the 4th element (index 3). While calculating this address is valid, **dereferencing** it (`p[0] = 10`) attempts to write outside the allocated memory block, causing undefined behavior.
+
+### 2\) Fixed Code:
+
+To support writing to the offset `base + 3`, the allocation size is increased to hold at least 4 integers.
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    // FIX: Allocate enough memory for 4 integers (indices 0 to 3)
+    int *base = (int *)malloc(4 * sizeof(int));
+    if (!base) {
+        return 1;
+    }
+    
+    // Now p points to a valid memory location (index 3) inside the block
+    int *p = base + 3;
+    p[0] = 10;
+    
+    assert(p[0] == 10);
+    free(base);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works:
+
+  * **Root Cause:** `malloc(3 * sizeof(int))` creates a memory block capable of holding integers at offsets `base[0]`, `base[1]`, and `base[2]`. Accessing `base[3]` (which corresponds to `p[0]` when `p = base + 3`) is strictly out of bounds.
+  * **The Solution:** By changing the allocation to `malloc(4 * sizeof(int))`, we ensure that the memory block extends to include the index 3.
+  * **Result:** The pointer `p` now points to valid, allocated memory. The write operation `p[0] = 10` is safe, and the subsequent assertion holds true without triggering a bounds violation in ESBMC.
+
+-----
+
+**Would you like me to explain how ESBMC handles symbolic execution for pointer arithmetic bounds checking?**

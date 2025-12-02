@@ -1,0 +1,50 @@
+Here is the analysis of the code and the ESBMC verification report.
+
+### 1\) Issue Found
+
+**Double Free Vulnerability**
+The code attempts to free the same memory allocation twice.
+
+  * The pointer `buf` is freed via `free(buf)`.
+  * Immediately after, the code checks `if (buf != NULL)`. Since `free()` does not set the pointer to `NULL`, `buf` still holds the memory address of the now-invalidated object (a dangling pointer).
+  * The condition evaluates to true, and `free(buf)` is called a second time, violating the safety property regarding invalidated dynamic objects.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+char *make_buffer(int n) {
+    char *p = (char *)malloc((size_t)n);
+    return p;
+}
+
+int main(void) {
+    char *buf = make_buffer(16);
+    assert(buf != NULL);
+    
+    free(buf);
+    buf = NULL; // Set pointer to NULL after freeing
+    
+    // This check will now fail safely, skipping the second free
+    if (buf != NULL) {
+        free(buf);
+    }
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+The root cause is that `free(buf)` releases the memory associated with `buf` but does not clear the pointer variable itself. The pointer becomes "dangling"—it points to a memory location that is no longer valid.
+
+By explicitly assigning `buf = NULL;` immediately after the first `free(buf)`:
+
+1.  We eliminate the dangling pointer.
+2.  The subsequent check `if (buf != NULL)` evaluates to false.
+3.  The second `free()` is skipped, preventing the double free error detected by ESBMC. Note that even if `free(NULL)` were called, it is defined as a no-op in C, making it safe.
+
+-----
+
+**Would you like me to explain how to configure ESBMC to automatically detect memory leaks alongside double frees?**

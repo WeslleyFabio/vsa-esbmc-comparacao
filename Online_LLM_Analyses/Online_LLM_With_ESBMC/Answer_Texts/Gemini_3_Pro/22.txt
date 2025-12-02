@@ -1,0 +1,38 @@
+### 1\) Issue Found:
+
+**Dangling Pointer (Use-After-Return)**
+ESBMC detected a **dereference failure** because the program accesses an "expired variable pointer."
+
+  * **Root Cause:** The function `store_address` returns the address of a local variable (`x`). Local variables are allocated on the stack and are destroyed (expired) as soon as the function returns.
+  * **Result:** The pointer `q` in `main` points to a memory location that is no longer valid. Dereferencing it (`*q`) leads to undefined behavior.
+
+### 2\) Fixed Code:
+
+The simplest fix to extend the lifetime of the variable without introducing dynamic memory management (heap) is to use the `static` keyword.
+
+```c
+#include <assert.h>
+
+int *store_address(void) {
+    // Fix: 'static' gives the variable static storage duration.
+    // It remains in memory for the entire program execution.
+    static int x = 5;
+    int *p = &x;
+    return p;
+}
+
+int main(void) {
+    int *q = store_address();
+    int v = *q;
+    assert(v == 5);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works:
+
+  * **Storage Duration:** By adding the `static` keyword, the variable `x` is moved from the **stack** (automatic storage) to the **data segment** (static storage).
+  * **Lifetime Extension:** Unlike stack variables, which die when the function returns, static variables persist for the entire lifetime of the program.
+  * **Verification Success:** When `main` dereferences `q`, the address points to valid static memory rather than an expired stack frame, satisfying ESBMC's validity checks.
+
+**Would you like me to show how to solve this using dynamic memory allocation (malloc) instead?**

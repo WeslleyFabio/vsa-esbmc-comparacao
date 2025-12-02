@@ -1,0 +1,16 @@
+ 1) Issue Found:
+The code has a vulnerability where the structure `Pair` is being accessed out of bounds. The function `write_third` tries to assign a value to `p->values[2]`, which does not exist since the structure definition only includes two elements (`values[0]` and `values[1]`).
+
+2) Fixed Code:
+```c
+struct Pair {
+    int values[3]; // Changed array size to 3
+};
+
+void write_third(struct Pair *p) {
+    p->values[2] = 10; // No changes here, the original logic is preserved
+}
+```
+3) Why This Fix Works:
+By changing the size of the `values` array in the `Pair` structure to include three elements (indexes 0-2), we provide a valid memory location for `p->values[2]`. The fix preserves the original logic of the code while ensuring that there are no out-of-bounds accesses.
+

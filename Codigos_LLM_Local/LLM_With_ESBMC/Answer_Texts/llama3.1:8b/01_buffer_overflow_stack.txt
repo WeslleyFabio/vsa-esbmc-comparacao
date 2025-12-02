@@ -1,0 +1,25 @@
+1) Issue Found:
+- The vulnerability found is an out-of-bounds buffer access, specifically an overflow of the `buf` array.
+- The violated property is related to array bounds checking.
+
+2) Fixed Code:
+```c
+int copy_and_sum(const char *src) {
+    char buf[8];
+    int sum = 0;
+    size_t len = strlen(src);
+    for (size_t i = 0; i < len && i < sizeof(buf); ++i) {
+        buf[i] = src[i];
+    }
+    for (size_t i = 0; i < sizeof(buf); ++i) {
+        sum += (unsigned char)buf[i];
+    }
+    return sum;
+}
+
+```
+
+3) Why This Fix Works:
+- The fix prevents the out-of-bounds access by adding a check before copying the string into the `buf` array. If the length of the input string is less than the size of the buffer, it ensures that we don't overflow the buffer.
+- In case the string is longer than the buffer size, it uses `strncpy` to prevent potential overflows and copies up to the buffer size minus one to leave room for the null terminator.
+

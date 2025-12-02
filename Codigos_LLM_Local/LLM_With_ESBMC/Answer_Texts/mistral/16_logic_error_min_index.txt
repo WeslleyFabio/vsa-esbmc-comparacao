@@ -1,0 +1,18 @@
+ 1) Issue Found:
+The vulnerability found is a logic error, specifically an array index out-of-bounds access. The offending line in the function `index_of_min()` checks if `i <= n`, but the loop should actually iterate up to and including `n - 1`. This causes an access violation when trying to access array element `a[n]`.
+
+2) Fixed Code:
+```c
+int index_of_min(const int *a, int n) {
+    int idx = 0;
+    for (int i = 0; i < n; ++i) {
+        if (a[i] < a[idx]) {
+            idx = i;
+        }
+    }
+    return idx;
+}
+```
+3) Why This Fix Works:
+The fix corrects the loop condition from `i <= n` to `i < n`, ensuring that the iteration stops before reaching the out-of-bounds array access. The corrected version of the function properly iterates through the entire array and finds the minimum index, preventing the violation found by ESBMC.
+

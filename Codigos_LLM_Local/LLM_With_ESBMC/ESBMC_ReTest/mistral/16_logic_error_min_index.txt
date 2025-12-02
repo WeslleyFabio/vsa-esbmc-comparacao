@@ -1,0 +1,6 @@
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/mistral/16_logic_error_min_index.c
+Converting
+ERROR: main symbol `main' not found
+ERROR: CONVERSION ERROR

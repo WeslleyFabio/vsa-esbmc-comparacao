@@ -1,0 +1,17 @@
+ 1) Issue Found:
+The code contains an array index out of bounds vulnerability. The function `get_value()` is designed to return the value at a specific index from an array, but it does not properly handle indices that are greater than the array's size. In this case, when `index` equals 4 and the array has a size of 4 (as specified in the `v[4]` initialization), the function returns a value outside the array boundaries, leading to undefined behavior and potential memory corruption.
+
+2) Fixed Code:
+```c
+int get_value(int *a, int n, int index) {
+    if (index >= 0 && index < n) {
+        return a[index];
+    }
+    return 0;
+}
+```
+In this corrected version of the function `get_value()`, we changed the comparison for the index to `index < n` instead of `index <= n`. This ensures that the returned index will always be less than the array size, preventing the array index out of bounds vulnerability.
+
+3) Why This Fix Works:
+The root cause of the issue was that the original function allowed indices greater than or equal to the array's size. This could lead to memory corruption and undefined behavior when accessing memory locations outside the allocated array. By changing the comparison for the index to `index < n`, we ensure that the returned index will always be less than the array size, thus preventing out-of-bounds access and memory corruption. The corrected function now properly checks for valid indices within the array's bounds before returning a value from the array.
+

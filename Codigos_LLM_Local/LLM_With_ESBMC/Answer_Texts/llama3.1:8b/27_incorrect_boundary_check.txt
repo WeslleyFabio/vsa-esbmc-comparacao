@@ -1,0 +1,33 @@
+**1) Issue Found:**
+
+* The code has a vulnerability due to an incorrect boundary check.
+* The violated property is the correctness of the `is_index_valid` function for all possible inputs.
+
+**2) Fixed Code:**
+```c
+\\\`c
+#include <assert.h>
+
+int is_index_valid(int index, int size) {
+    if (index >= 0 && index <= size - 1) { // changed from '<' to '<='
+        return 1;
+    }
+    return 0;
+}
+
+int main(void) {
+    int r1 = is_index_valid(0, 10);
+    int r2 = is_index_valid(9, 10);
+    assert(r1 == 0);
+    assert(r2 == 1);
+    return 0;
+}
+\\\`
+```
+
+**3) Why This Fix Works:**
+
+The original code had an incorrect boundary check in the `is_index_valid` function. The condition `index < size` allows indices equal to `size` to pass, which is not valid since array indices in C are usually 0-based. By changing the condition to `index <= size - 1`, we ensure that indices are correctly checked against the array bounds.
+
+This fix prevents the issue found by ESBMC because it ensures that the function returns 0 for invalid indices (equal to or greater than `size`), which is consistent with the expected behavior of a valid index check.
+

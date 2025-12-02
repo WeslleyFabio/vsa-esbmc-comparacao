@@ -1,0 +1,39 @@
+**1) Issue Found:**
+
+* The vulnerability is a buffer overflow that occurs when the `memcpy` function attempts to copy more bytes than there are available in the destination buffer.
+* The violated property is an "array bounds violated" dereference failure, indicating that the program attempts to access memory outside the bounds of the allocated buffer.
+
+**2) Fixed Code:**
+
+```c
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+
+char *duplicate_prefix(const char *src, size_t n) {
+    if (n > strlen(src)) {
+        n = strlen(src);
+    }
+    char *buf = (char *)malloc(n + 1);
+    if (!buf) {
+        return NULL;
+    }
+    memcpy(buf, src, n + 1);
+    return buf;
+}
+
+int main(void) {
+    const char *s = "hello world";
+    char *p = duplicate_prefix(s, 5);
+    assert(p != NULL);
+    free(p);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+
+The fix works by adding a check to ensure that the number of bytes copied (`n`) does not exceed the length of the source string. If `n` is greater than the length of the source string, it is set to the length of the source string. This prevents the buffer overflow by ensuring that no more bytes are copied than there are available in the destination buffer.
+
+This fix addresses the root cause of the issue, which was an unchecked copy operation that allowed too many bytes to be written to the destination buffer. By limiting the number of bytes copied to the length of the source string, we prevent the buffer overflow and ensure that the program remains safe.
+

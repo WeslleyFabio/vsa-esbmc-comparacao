@@ -1,0 +1,30 @@
+ 1) Issue Found:
+The code contains an integer overflow vulnerability. The variables 'a' and 'b' are initialized with `INT_MAX` and 10 respectively, and the function `add_ints(int a, int b)` adds these two integers together, resulting in a sum greater than `INT_MAX`. This exceeds the maximum representable value for an integer, causing overflow. The violated property is the assertion `c > a`, which fails because `c` (the sum of `a` and `b`) overflows and wraps around to a smaller value than `a`.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <limits.h>
+
+int add_ints(int a, int b) {
+    if (a > INT_MAX - b) return -1; // Check for overflow before adding
+    int c = a + b;
+    return c;
+}
+
+int main(void) {
+    int a = INT_MAX;
+    int b = 10;
+    int c = add_ints(a, b);
+    if (c == -1) // Check for overflow condition
+        printf("Integer overflow detected.\n");
+    else {
+        assert(c > a);
+        printf("The sum is: %d\n", c);
+    }
+    return 0;
+}
+```
+3) Why This Fix Works:
+This fix adds an additional check before adding the two integers to ensure that the result will not overflow. If the sum would exceed `INT_MAX`, the function returns `-1` instead, indicating an integer overflow condition. By incorporating this check, the issue found by ESBMC is prevented, and the code becomes safe from integer overflow vulnerabilities when adding two large integers.
+

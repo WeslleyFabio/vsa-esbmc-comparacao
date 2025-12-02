@@ -1,0 +1,23 @@
+ 1) Issue Found:
+The code has a dangling pointer vulnerability. The memory location pointed to by the pointer `p`, initially pointing to the local variable `x`, is no longer valid once the function `store_address()` returns, causing a dereference failure when accessing the value through the pointer `q` in the `main()` function.
+
+2) Fixed Code:
+```c
+int *store_address(void) {
+    int x = 5;
+    static int result; // Change local variable to static
+    result = &x;
+    return &result;
+}
+
+int main(void) {
+    int *q = store_address();
+    int v = *q;
+    assert(v == 5);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+By changing the local variable `x` to a static one, its memory is allocated in the data segment, which persists beyond the scope of the function. Consequently, the memory address stored in the `result` variable remains valid after the function returns, preventing the dangling pointer vulnerability and the dereference failure.
+

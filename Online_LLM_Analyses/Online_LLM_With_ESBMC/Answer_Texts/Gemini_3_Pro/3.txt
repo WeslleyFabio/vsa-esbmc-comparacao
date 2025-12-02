@@ -1,0 +1,40 @@
+Based on the analysis of the code and the ESBMC report, here is the explanation of the failure and the solution.
+
+### 1\) Issue Found
+
+  * **Vulnerability:** Array Bounds Violation (Buffer Overflow).
+  * **Violated Property:** `dereference failure: array bounds violated` at line 6.
+  * **Root Cause:** The loop condition `i <= n` causes an **off-by-one error**. When `main` passes `4` as the size (`n`) of the array, the loop attempts to access `arr[4]`. Since C arrays are 0-indexed, an array of size 4 has valid indices 0, 1, 2, and 3. Accessing index 4 reads memory outside the allocated buffer.
+
+### 2\) Fixed Code
+
+The loop condition is updated to strictly less than `n` (`i < n`) to ensure the index remains within valid bounds.
+
+```c
+#include <assert.h>
+
+int last_element(int *arr, int n) {
+    int last = 0;
+    // Fix: Changed condition from 'i <= n' to 'i < n' to prevent out-of-bounds access
+    for (int i = 0; i < n; ++i) {
+        last = arr[i];
+    }
+    return last;
+}
+
+int main(void) {
+    int data[4] = {1, 2, 3, 4};
+    int v = last_element(data, 4);
+    assert(v == 4);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+  * **Technical Explanation:** In C, an array declared as `int data[N]` has valid indices ranging from `0` to `N-1`. The original code iterated while `i <= n`, meaning it attempted to access the array at index `n` (in this case, `arr[4]`), which triggers a dereference failure.
+  * **ESBMC Prevention:** By changing the loop condition to `i < n`, the loop variable `i` iterates from `0` to `3`. This ensures that every memory access `arr[i]` falls strictly within the allocated memory region of `data`, satisfying the bounds check property verified by ESBMC.
+
+-----
+
+**Would you like me to show you how to optimize this function to access the last element directly without a loop?**

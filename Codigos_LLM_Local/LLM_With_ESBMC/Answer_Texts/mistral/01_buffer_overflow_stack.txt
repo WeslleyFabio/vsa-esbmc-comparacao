@@ -1,0 +1,26 @@
+ 1) Issue Found:
+The program has a buffer overflow vulnerability. The function `copy_and_sum` attempts to copy a string of arbitrary length into the fixed-size buffer `buf` without checking if the string's length is greater than the buffer size (8). This allows the string to overwrite adjacent memory locations, potentially leading to unintended behavior or security issues. In this case, ESBMC violated the property related to array bounds violation of the `buf` array.
+
+2) Fixed Code:
+```c
+int copy_and_sum(const char *src) {
+    size_t len = strlen(src);
+    if (len > sizeof(buf)) {
+        fprintf(stderr, "Error: String is too long to be copied.\n");
+        exit(1);
+    }
+    char buf[8];
+    int sum = 0;
+    for (size_t i = 0; i < len; ++i) {
+        buf[i] = src[i];
+    }
+    for (size_t i = 0; i < sizeof(buf); ++i) {
+        sum += (unsigned char)buf[i];
+    }
+    return sum;
+}
+```
+
+3) Why This Fix Works:
+The fix ensures that the length of the input string is checked before copying it into the buffer. If the string's length exceeds the buffer size, an error message is printed, and the program exits gracefully to prevent a potential buffer overflow. By doing so, the function maintains the original logic while eliminating the vulnerability identified by ESBMC.
+

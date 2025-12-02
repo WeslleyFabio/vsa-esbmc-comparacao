@@ -1,0 +1,26 @@
+ 1) Issue Found:
+The code has a vulnerability where it attempts to read an element (a[i]) beyond the boundaries of the array during the for loop iteration `i <= n`. This results in a dereference failure and a violation of the array bounds, as reported by ESBMC.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+
+int sum_array(const int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n; ++i) {
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int v[3] = {1, 2, 3};
+    int s = sum_array(v, 3);
+    assert(s == 6);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The fix works by modifying the for loop condition to `i < n` instead of `i <= n`, preventing the iteration from going beyond the array bounds and avoiding the violation of the array bounds, which was causing the issue found by ESBMC.
+

@@ -1,0 +1,37 @@
+ 1) Issue Found:
+The code contains a vulnerability known as use-after-free, where the pointer `q` is assigned a new memory location using `realloc`, but then the original memory pointed to by `p` (which was previously assigned to `q`) is freed before accessing it again in line 16. As a result, `q[3]` is accessed after the memory has been freed, causing a dereference failure.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 1;
+    p[1] = 2;
+    int *q = (int *)realloc(p, 4 * sizeof(int));
+    if (q == NULL) {
+        free(p);
+        return 1;
+    }
+    q = realloc(q, 4 * sizeof(int)); // Moved the call to realloc after freeing p
+    if (q == NULL) {
+        free(p);
+        return 1;
+    }
+    free(p);
+    q[2] = 3;
+    q[3] = 4;
+    assert(q[3] == 4);
+    free(q);
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+The fix works by moving the call to `realloc` after freeing the original memory pointed to by `p`. By doing this, the code ensures that the new memory allocated for `q` is not freed until it has been successfully assigned. This prevents the use-after-free vulnerability and resolves the issue found by ESBMC.
+

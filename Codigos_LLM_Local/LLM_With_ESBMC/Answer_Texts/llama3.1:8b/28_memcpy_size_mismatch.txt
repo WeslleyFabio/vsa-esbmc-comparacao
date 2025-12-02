@@ -1,0 +1,35 @@
+**1) Issue Found:**
+
+- The vulnerability found is a "dereference failure" caused by an array bounds violation.
+- The property violated is the one related to safe memory access, specifically that the `memcpy` function does not write beyond the bounds of the `b->data` array.
+
+**2) Fixed Code:**
+```c
+#include <assert.h>
+#include <string.h>
+
+struct Buffer {
+    char data[9];  // Increased size to match the source string length
+    int flag;
+};
+
+void fill_buffer(struct Buffer *b, const char *src) {
+    memcpy(b->data, src, sizeof(*b));
+}
+
+int main(void) {
+    struct Buffer b;
+    b.flag = 1;
+    fill_buffer(&b, "ABCDEFGH");
+    assert(b.flag == 1);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+
+- The root cause of the issue is that the `memcpy` function writes 9 characters to an array that has only 8 elements. This causes a buffer overflow.
+- To prevent this, we increased the size of the `data` array in the `struct Buffer` from 8 to 9 elements. Now, the `memcpy` function can safely copy all 8 characters from the source string without writing beyond the bounds of the array.
+
+Note: ESBMC's report indicates that no solver was specified, so I used the default Boolector solver.
+

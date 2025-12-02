@@ -1,0 +1,35 @@
+### 1\) Issue Found
+
+  * **Vulnerability:** Array Index Out of Bounds (Buffer Overflow).
+  * **Violated Property:** `dereference failure: array bounds violated`.
+  * **Location:** The failure occurs at line 5 inside the `get_value` function. The condition `index <= n` allows the function to access `a[index]` when `index` equals `n`. Since the array `v` in `main` has a size of 4 (`n=4`), valid indices are $0, 1, 2, 3$. Accessing `a[4]` constitutes undefined behavior.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+
+int get_value(int *a, int n, int index) {
+    // Fixed: Changed condition to strictly less than n (index < n)
+    if (index >= 0 && index < n) {
+        return a[index];
+    }
+    return 0;
+}
+
+int main(void) {
+    int v[4] = {1, 2, 3, 4};
+    int x = get_value(v, 4, 4);
+    assert(x == 0);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+  * **Root Cause:** The original code contained an off-by-one error. In C, an array of size $N$ is indexed from $0$ to $N-1$. The original check `index <= n` incorrectly permitted the index to match the array size.
+  * **Correction:** Changing the condition to `index < n` ensures that the index is always within the valid range ($0$ to $n-1$). This prevents the program from attempting to read memory outside the allocated array bounds, resolving the violation reported by ESBMC.
+
+-----
+
+**Would you like me to explain how to configure ESBMC to check for other memory safety properties like memory leaks?**

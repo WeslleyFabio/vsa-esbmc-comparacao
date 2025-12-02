@@ -1,0 +1,19 @@
+ 1) Issue Found:
+The code has a buffer overflow vulnerability. The function `duplicate_prefix` allocates memory for the buffer `buf` with size `n`, but when copying the string `src` using `memcpy`, it doesn't account for the null terminator (`+1`). This results in writing past the end of the allocated buffer, causing a buffer overflow.
+
+2) Fixed Code:
+```c
+char *duplicate_prefix(const char *src, size_t n) {
+    char *buf = (char *)malloc(n + 1);
+    if (!buf) {
+        return NULL;
+    }
+    memcpy(buf, src, n);
+    buf[n] = '\0'; // Adding null terminator
+    return buf;
+}
+```
+
+3) Why This Fix Works:
+The fix adds a null terminator to the copied string, ensuring that it fits within the allocated buffer and prevents any potential buffer overflow. The additional null character maintains the integrity of the string and avoids writing past the end of the buffer during subsequent operations.
+

@@ -1,0 +1,38 @@
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_Only/Answer_Codes/llama3.1:8b/30_double_free_shared_pointer.c
+Converting
+Generating GOTO Program
+GOTO program creation time: 0.092s
+GOTO program processing time: 0.003s
+Starting Bounded Model Checking
+Symex completed in: 0.002s (36 assignments)
+Caching time: 0.000s (removed 3 assertions)
+Slicing time: 0.000s (removed 14 assignments)
+Generated 20 VCC(s), 10 remaining after simplification (19 assignments)
+No solver specified; defaulting to Boolector
+Encoding remaining VCC(s) using bit-vector/floating-point arithmetic
+Encoding to solver time: 0.000s
+Solving with solver Boolector 3.2.4
+Runtime decision procedure: 0.003s
+Building error trace
+
+[Counterexample]
+
+
+State 1 file /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_Only/Answer_Codes/llama3.1:8b/30_double_free_shared_pointer.c line 9 column 5 function main thread 0
+----------------------------------------------------
+  a = ( struct Node *)(&dynamic_2_value)
+
+State 2 file /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_Only/Answer_Codes/llama3.1:8b/30_double_free_shared_pointer.c line 13 column 5 function main thread 0
+----------------------------------------------------
+  b = &dynamic_2_value
+
+State 10 file /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_Only/Answer_Codes/llama3.1:8b/30_double_free_shared_pointer.c line 17 column 5 function main thread 0
+----------------------------------------------------
+Violated property:
+  file /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_Only/Answer_Codes/llama3.1:8b/30_double_free_shared_pointer.c line 17 column 5 function main
+  dereference failure: invalidated dynamic object freed
+
+
+VERIFICATION FAILED

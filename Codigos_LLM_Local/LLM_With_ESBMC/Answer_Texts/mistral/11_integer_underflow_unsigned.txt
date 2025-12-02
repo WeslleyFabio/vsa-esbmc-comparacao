@@ -1,0 +1,13 @@
+ 1) Issue Found:
+The code contains an integer underflow vulnerability, specifically in the `decrement` function when called with an input of zero. The function returns a value that is one less than the input, which in this case results in `y` becoming `UINT_MAX - 1`, causing `y` to be greater than `x`. This violates the assertion in the `main` function that `y < x`.
+
+2) Fixed Code:
+```c
+unsigned int decrement(unsigned int x) {
+    if (x == 0) return 0; // Special case for zero to avoid underflow
+    return x - 1u;
+}
+```
+3) Why This Fix Works:
+The fix addresses the root cause of the issue by providing a special case for input `x` being zero in the `decrement` function. Instead of returning `UINT_MAX - 1`, it returns zero, which ensures that `y` remains less than or equal to `x`. This fix prevents the integer underflow vulnerability and avoids violating the assertion in the `main` function.
+

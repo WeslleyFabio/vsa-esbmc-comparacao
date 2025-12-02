@@ -1,0 +1,43 @@
+### 1\) Issue Found:
+
+**Stack Buffer Overflow (Array Bounds Violation)**
+The verification failed due to an out-of-bounds write on the array `buf`.
+
+  * **Root Cause:** The input string `"ABCDEFGH"` has a length of 8, so `strlen(src)` returns 8. The loop condition `i <= len` allows the loop to iterate from `0` to `8` (inclusive), totaling 9 iterations.
+  * **The Violation:** On the last iteration (`i = 8`), the code attempts to write the null terminator (`\0`) to `buf[8]`. However, `buf` is declared as `char buf[8]`, meaning valid indices are only `0` through `7`. Accessing index `8` violates the upper bound property.
+
+### 2\) Fixed Code:
+
+```c
+#include <assert.h>
+#include <string.h>
+
+int copy_and_sum(const char *src) {
+    // Fix: Increased buffer size to 9 to accommodate 8 characters + null terminator
+    char buf[9]; 
+    int sum = 0;
+    size_t len = strlen(src);
+
+    // Guard: Ensure we do not exceed the buffer size even if logic dictates
+    for (size_t i = 0; i <= len && i < sizeof(buf); ++i) {
+        buf[i] = src[i];
+    }
+    
+    for (size_t i = 0; i < sizeof(buf); ++i) {
+        sum += (unsigned char)buf[i];
+    }
+    return sum;
+}
+
+int main(void) {
+    const char *s = "ABCDEFGH";
+    int result = copy_and_sum(s);
+    assert(result != 0);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works:
+
+1.  **Buffer Expansion:** Increasing `char buf[8]` to `char buf[9]` ensures there is sufficient physical memory to hold the specific 8-character string provided in `main` plus its necessary null terminator (9 bytes total).
+2.  **Boundary Guard:** Adding `&& i < sizeof(buf)` to the loop condition ensures that `copy_and_sum` is robust. Even if a longer string were passed to the function in the future, the loop would terminate before writing outside the allocated stack memory, preventing the Buffer Overflow reported by ESBMC.

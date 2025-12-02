@@ -1,0 +1,50 @@
+Here is the analysis and correction of the provided C code and verification report.
+
+### 1\) Issue Found
+
+  * **Vulnerability:** Heap Buffer Overflow.
+  * **Violated Property:** `dereference failure: array bounds violated` (detected by ESBMC in `memcpy`).
+  * **Description:** The function `malloc(n)` allocates exactly `n` bytes of memory. However, the subsequent call `memcpy(buf, src, n + 1)` attempts to write `n + 1` bytes into this buffer. This causes a write operation that exceeds the allocated memory boundaries by one byte, corrupting the heap.
+
+[Image of heap buffer overflow diagram]
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+
+char *duplicate_prefix(const char *src, size_t n) {
+    // Allocate space for n characters plus the null terminator
+    char *buf = (char *)malloc(n + 1);
+    if (!buf) {
+        return NULL;
+    }
+    // Copy only n characters
+    memcpy(buf, src, n);
+    // Explicitly null-terminate the string
+    buf[n] = '\0';
+    return buf;
+}
+
+int main(void) {
+    const char *s = "hello world";
+    char *p = duplicate_prefix(s, 5);
+    assert(p != NULL);
+    free(p);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+  * **Root Cause:** The original code allocated insufficient memory (`n` bytes) for the intended operation, while `memcpy` tried to write `n+1` bytes. Additionally, `memcpy`ing `n+1` bytes from a longer string (like "hello world") would copy the next character (e.g., the space) rather than a null terminator, resulting in a non-terminated string.
+  * **Fix Explanation:**
+    1.  **Correct Allocation:** `malloc(n + 1)` ensures the buffer is large enough to hold the prefix content plus the null terminator required for valid C strings.
+    2.  **Safe Copy:** `memcpy(buf, src, n)` copies exactly the requested prefix length, ensuring no data is read or written out of bounds.
+    3.  **Null Termination:** `buf[n] = '\0'` manually adds the null terminator, ensuring the result is a valid, safe string. ESBMC will now verify that all memory accesses fall within the allocated `n + 1` range.
+
+-----
+
+**Would you like me to explain how to use ESBMC command-line flags to detect memory leaks in this code as well?**

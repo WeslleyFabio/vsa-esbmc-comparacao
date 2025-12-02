@@ -1,0 +1,7 @@
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_Only/Answer_Codes/llama3.1:8b/25_out_of_bounds_read_array.c
+/home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_Only/Answer_Codes/llama3.1:8b/25_out_of_bounds_read_array.c:17:1: error: expected identifier or '('
+   17 | \\\`
+      | ^
+ERROR: PARSING ERROR

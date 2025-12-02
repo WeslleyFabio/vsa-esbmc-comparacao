@@ -1,0 +1,29 @@
+**1) Issue Found:**
+The issue found by ESBMC is a use-after-free vulnerability. The property that is violated is "dereference failure: invalidated dynamic object". This means that the program attempts to access memory after it has already been freed.
+
+**2) Fixed Code:**
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int *)malloc(2 * sizeof(int));
+    if (!p) {
+        return 1;
+    }
+    p[0] = 10;
+    p[1] = 20;
+    free(p);
+    
+    // Introduce a new pointer to a local variable
+    int local_var;
+    int *q = &local_var;
+    q[0] = 30;
+    assert(q[0] == 30);
+    return 0;
+}
+```
+
+**3) Why This Fix Works:**
+The root cause of the issue is that the program attempts to access memory `p` after it has already been freed. To prevent this, we introduced a new pointer `q` pointing to a local variable `local_var`. This ensures that the memory accessed by `q` remains valid even after the original memory allocated for `p` has been freed. By using a local variable and its address, we create a separate memory space that is not affected by the free operation.
+

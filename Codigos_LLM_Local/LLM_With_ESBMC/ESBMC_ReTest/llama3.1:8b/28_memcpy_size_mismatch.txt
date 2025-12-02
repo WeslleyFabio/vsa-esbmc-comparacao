@@ -1,0 +1,50 @@
+ESBMC version 7.11.0 64-bit x86_64 linux
+Target: 64-bit little-endian x86_64-unknown-linux with esbmclibc
+Parsing /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/llama3.1:8b_2/28_memcpy_size_mismatch.c
+Converting
+Generating GOTO Program
+GOTO program creation time: 0.087s
+GOTO program processing time: 0.000s
+Starting Bounded Model Checking
+Unwinding loop 18 iteration 1   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 2   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 3   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 4   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 5   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 6   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 7   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 8   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 9   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 10   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 11   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 12   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 13   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 14   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 15   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Unwinding loop 18 iteration 16   file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 278 column 3 function memcpy
+Symex completed in: 0.006s (62 assignments)
+Caching time: 0.000s (removed 0 assertions)
+Slicing time: 0.000s (removed 37 assignments)
+Generated 81 VCC(s), 8 remaining after simplification (25 assignments)
+No solver specified; defaulting to Boolector
+Encoding remaining VCC(s) using bit-vector/floating-point arithmetic
+Encoding to solver time: 0.003s
+Solving with solver Boolector 3.2.4
+Runtime decision procedure: 0.009s
+Building error trace
+
+[Counterexample]
+
+
+State 1 file /home/argos40/repo/vsa-esbmc-comparacao/Codigos_LLM_Local/LLM_With_ESBMC/Answer_Codes/llama3.1:8b_2/28_memcpy_size_mismatch.c line 14 column 5 function main thread 0
+----------------------------------------------------
+  b = { .data = { 0 } }
+
+State 2 file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 280 column 5 function memcpy thread 0
+----------------------------------------------------
+Violated property:
+  file /home/runner/work/esbmc/esbmc/src/c2goto/library/string.c line 280 column 5 function memcpy
+  dereference failure: array bounds violated
+
+
+VERIFICATION FAILED

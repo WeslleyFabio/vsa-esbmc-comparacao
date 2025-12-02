@@ -1,0 +1,12 @@
+ 1) Issue Found:
+The code has a vulnerability in the `absolute_value` function, where it does not correctly handle negative numbers. Specifically, the function returns the negatives as they are instead of their absolute values. This leads to a violation of the assertion in the `main` function that `v` should be equal to 5, but ESBMC finds that `v` is actually -5. The violated property is `v == 5`.
+
+2) Fixed Code:
+```c
+int absolute_value(int x) {
+    return (x < 0) ? (-x) : x; // Using a ternary operator to handle both positive and negative cases correctly.
+}
+```
+3) Why This Fix Works:
+The root cause of the issue is that the original implementation of `absolute_value` only returns the value of `x` if it's non-negative, but for negative numbers it just repeats the same line, effectively returning the negative number as-is. The fix uses a ternary operator to handle both positive and negative cases correctly by returning the absolute value of the negatives. This prevents the violation found by ESBMC.
+

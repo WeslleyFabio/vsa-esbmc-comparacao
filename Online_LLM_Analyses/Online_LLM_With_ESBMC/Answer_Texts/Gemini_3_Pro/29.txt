@@ -1,0 +1,40 @@
+Based on the analysis of the C code and the ESBMC verification report, here is the explanation:
+
+### 1\) Issue Found
+
+**Vulnerability:** Buffer Overwrite / Data Corruption.
+
+**Description:** The verification failure `assertion h.size == 123` indicates that the `size` member of the `Header` struct was corrupted (overwritten) during the `reset_header` function call.
+Although the provided snippet shows `sizeof(h->tag)`, the failure confirms that the `memset` operation wrote more than the 4 bytes allocated for `tag`, spilling over into the adjacent `size` integer (which resides at offset 4). This typically happens when the size of the pointer (`sizeof(h)`, which is 8 bytes on 64-bit systems) is erroneously used instead of the size of the member.
+
+### 2\) Fixed Code
+
+```c
+#include <assert.h>
+#include <string.h>
+
+struct Header {
+    char tag[4];
+    int size;
+};
+
+void reset_header(struct Header *h) {
+    // FIX: Explicitly use h->tag as the destination and its size
+    memset(h->tag, 0, sizeof(h->tag));
+}
+
+int main(void) {
+    struct Header h;
+    h.size = 123;
+    reset_header(&h);
+    // The assertion will now pass because h.size is not overwritten
+    assert(h.size == 123);
+    return 0;
+}
+```
+
+### 3\) Why This Fix Works
+
+**Root Cause:** The failure was caused by `memset` writing zero to bytes that belonged to `h.size`. In the memory layout, `tag` occupies bytes 0-3, and `size` occupies bytes 4-7. Writing 8 bytes (the size of a pointer) starting at `h` zeroes out both `tag` and `size`.
+
+**The Solution:** The fix changes the `memset` destination to `h->tag`. While `h` and `h->tag` point to the same memory address, using `h->tag` makes the intent explicit and ensures that `sizeof(h->tag)` (which is 4 bytes) matches the object being cleared. This restricts the write operation strictly to the 4 bytes of the `tag` array, leaving `h.size` (123) untouched.

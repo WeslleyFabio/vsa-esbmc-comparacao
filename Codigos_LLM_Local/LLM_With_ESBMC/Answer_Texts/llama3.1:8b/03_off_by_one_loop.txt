@@ -1,0 +1,23 @@
+**1) Issue Found:**
+
+* The vulnerability is an **out-of-bounds array access**, which violates the property that arrays should not be accessed with indices greater than or equal to their size.
+* Specifically, the bug occurs when `i` reaches `n` in the loop, causing `arr[i]` to be accessed outside of its bounds.
+
+**2) Fixed Code:**
+
+```c
+int last_element(int *arr, int n) {
+    int last = 0;
+    for (int i = 0; i < n; ++i) { // Changed from <= to <
+        last = arr[i];
+    }
+    return last;
+}
+```
+
+**3) Why This Fix Works:**
+
+The fix prevents the out-of-bounds access by changing the loop condition from `i <= n` to `i < n`. This ensures that `arr[i]` is never accessed when `i` equals `n`, thus preventing the array bounds violation.
+
+By making this change, we prevent the counterexample reported by ESBMC, and the program is now safe.
+

@@ -1,0 +1,40 @@
+1) Issue Found:
+- The vulnerability found is a null pointer dereference after free.
+- The violated property is a "dereference failure" property, which indicates that the program attempts to access memory through a null pointer.
+
+2) Fixed Code:
+```c
+#include <assert.h>
+#include <stdlib.h>
+
+int sum_array(int *a, int n) {
+    int s = 0;
+    for (int i = 0; i < n && a != NULL; ++i) {
+        if (a[i] == NULL) break;
+        s += a[i];
+    }
+    return s;
+}
+
+int main(void) {
+    int *data = (int *)malloc(3 * sizeof(int));
+    if (!data) {
+        return 1;
+    }
+    data[0] = 1;
+    data[1] = 2;
+    data[2] = 3;
+    free(data);
+    // Add a check before calling sum_array
+    if (data != NULL) {
+        int result = sum_array(data, 3);
+        assert(result == 6);
+    }
+    return 0;
+}
+```
+
+3) Why This Fix Works:
+- The root cause of the issue is that the `sum_array` function does not check for null pointers before accessing the array elements. After freeing the memory allocated to `data`, it becomes a dangling pointer, and attempting to access its elements leads to undefined behavior.
+- The fix adds a check in the `main` function to ensure that `data` is not null before calling `sum_array`. Additionally, inside `sum_array`, an extra condition is added to break the loop if any element of `a` is NULL. This prevents attempting to access memory through a null pointer, thus fixing the vulnerability.
+
